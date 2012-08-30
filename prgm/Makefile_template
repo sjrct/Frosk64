@@ -1,0 +1,35 @@
+#
+# Makefile template for frosk C programs
+#
+# written by sjrct
+#
+
+SHELL   = /bin/sh
+
+TARGET  = # Program name here
+
+SRC_1   = # put C sources here
+
+CC      = gcc
+CCFLAGS = -c -Wall -m64 -ffreestanding -nostdinc -mcmodel=large -mno-red-zone -I$(INCLUDES)
+LDFLAGS = -m64 -ffreestanding -nostdlib -mcmodel=large -mno-red-zone -T$(TOPDIR)/prgm/fbe.ld
+
+SRC     = $(addprefix src/,$(SRC_1))
+TMP     = $(SRC:.c=.o)
+OBJ     = $(TMP:src/%=cobj/%)
+
+all: $(TARGET)
+
+$(TARGET): obj $(OBJ)
+	$(cmd) "$(CC) -o $(TARGET) $(OBJ) $(LDFLAGS)" "CC $(TARGET)"
+
+obj:
+	$(cmd) "mkdir obj" "MKDIR obj"
+
+obj/%.o: src/%.c
+	$(cmd) "$(CC) $(CCFLAGS) -o $@ $<" "CC $@"
+
+.PHONY: clean
+clean:
+	-$(cmd) "$(RM) $(TARGET)" "RM $(TARGET)"
+	-$(cmd) "$(RM) $(OBJ)" "RM obj/"

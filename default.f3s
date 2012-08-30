@@ -1,0 +1,22 @@
+d:[name = @, contents = {
+	f:[name = kernel.bin, actual = kernel/kernel.bin]
+}]
+
+d:[name = /, read = owner, write = owner, contents = {
+	d:[name = prgm, contents = {
+	}]
+
+	d:[name = user, contents = {
+		d:[name = super, contents = {
+		}]
+	}]
+
+	d:[name = sys, read = none, write = none, contents = {
+		d:[name = prgm, contents = {
+			d:[name = start, contents = {
+				f:[name = start, actual = prgm/start/start]
+				f:[name = start_prgms.lst, actual = prgm/start/start/start_prgms.lst]
+			}]
+		}]
+	}]
+}]
