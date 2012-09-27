@@ -14,22 +14,26 @@ size_t strlen(const char * s)
 	return i;
 }
 
-void * memcpy (void * dst, const void * src, size_t sz)
+void * memcpy (void * vdst, const void * vsrc, size_t sz)
 {
-	void * r = dst;
+	void * r = vdst;
+	char * dst = vdst;
+	const char * src = vsrc;
+	
 	for (; sz != 0; sz--) {
 		*dst = *src;
 		dst++;
 		src++;
 	}
+	
 	return r;
 }
 
 void * memmove(void * dst, const void * src, size_t sz)
 {
 	void * buf = malloc(sz);
-	memcpy(buf, src);
-	memcpy(dst, buf);
+	memcpy(buf, src, sz);
+	memcpy(dst, buf, sz);
 	free(buf);
 	return dst;
 }

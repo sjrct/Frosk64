@@ -9,11 +9,12 @@ SHELL      = /bin/sh
 TARGET     = frosk.img
 
 UTILS_B    = f301_builder
-PRGMS_B    = start
+PRGMS_B    = start frash fui
+LIBS_B     = cstd fapi
 
-MAKE      := $(MAKE) --no-print-directory
-TOPDIR     = $(shell pwd)
-export TOPDIR
+MAKE       := $(MAKE) --no-print-directory
+
+export TOPDIR = $(shell pwd)
 
 # handle verbosity
 ifndef V
@@ -26,17 +27,26 @@ export cmd
 
 # process simpler variables defined above
 UTILDIRS   = $(UTILS_B:%=util/%)
-UTILS_PREF = $(addprefix /,$(UTILS_B))
-UTILS      = $(join $(UTILDIRS), $(UTILS_PREF))
+UTILS      = $(join $(UTILDIRS), $(addprefix /,$(UTILS_B)))
 
 PRGMDIRS   = $(PRGMS_B:%=prgm/%)
-PRGMS_PREF = $(addprefix /,$(UTILS_B))
-PRGMS      = $(join $(PRGMDIRS), $(PRGMS_PREF))
+PRGMS      = $(join $(PRGMDIRS), $(addprefix /,$(PRGMS_B)))
+
+LIBDIRS    = $(LIBS_B:%=lib/%)
+LIBS       = $(addsuffix .a,$(join $(LIBDIRS), $(addprefix /,$(LIBS_B))))
+LIBS_FULL  = $(addprefix $(TOPDIR)/,$(LIBS))
+
+# standardize cc/ld arguments
+export FROSK_CCFL = -c -Wall -m64 -ffreestanding -mno-red-zone -mcmodel=large \
+                    -nostdinc -I$(TOPDIR)/include
+export FROSK_LDFL = -m64 -ffreestanding -mno-red-zone -mcmodel=large -nostdlib \
+                    -T$(TOPDIR)/prgm/fbe.ld $(LIBS_FULL)
 
 # dependecies and commands
+.PHONY: all
 all: $(TARGET)
 
-$(TARGET): boot/boot.bin default.f3s $(UTILS) $(PRGMS) kernel/kernel.bin
+$(TARGET): boot/boot.bin default.f3s $(UTILS) $(LIBS) $(PRGMS) kernel/kernel.bin
 	$(cmd) "util/f301_builder/f301_builder default.f3s $(TARGET)" "F301_BUILDER $(TARGET)"
 	$(cmd) "dd if=boot/boot.bin of=$(TARGET) conv=notrunc" "DD $(TARGET)" 2> /dev/null
 
@@ -49,6 +59,9 @@ kernel/kernel.bin: kernel/src/*
 $(UTILS): $(addsuffix /src/*,$(UTILDIRS))
 	$(cmd) "$(MAKE) -C $(@D)" "MAKE $(@D)"
 	
+$(LIBS): $(addsuffix /src/*,$(LIBDIRS))
+	$(cmd) "$(MAKE) -C $(@D)" "MAKE $(@D)"
+
 $(PRGMS): $(addsuffix /src/*,$(PRGMDIRS))
 	$(cmd) "$(MAKE) -C $(@D)" "MAKE $(@D)"
 
@@ -58,5 +71,6 @@ clean:
 	-$(cmd) "$(RM) boot/boot.bin" "RM boot/boot.bin"
 	-$(cmd) "$(MAKE) -C kernel clean" "MAKE CLEAN kernel"
 	-@for DIR in $(UTILDIRS); do $(cmdl) "$(MAKE) -C $$DIR clean" "MAKE CLEAN $$DIR"; done
+	-@for DIR in $(LIBDIRS); do $(cmdl) "$(MAKE) -C $$DIR clean" "MAKE CLEAN $$DIR"; done
 	-@for DIR in $(PRGMDIRS); do $(cmdl) "$(MAKE) -C $$DIR clean" "MAKE CLEAN $$DIR"; done
 

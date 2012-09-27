@@ -15,7 +15,7 @@
 
 static FILE * in;
 
-void ignore_whitespace()
+void ignore_whitespace(void)
 {
 	int c;
 	while (isspace(c = getc(in))) {

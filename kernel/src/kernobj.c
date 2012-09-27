@@ -18,14 +18,14 @@ static const kern_obj blank_hdr = {
 	}}
 };
 
-void init_kobj_mgr()
+void init_kobj_mgr(void)
 {
 	first_hdr = (kern_obj*)KOBJ_PG0_LOC;
 	*first_hdr = blank_hdr;
 	first_hdr->u.hdr.next = first_hdr;
 }
 
-kern_obj * alloc_kobj()
+kern_obj * alloc_kobj(void)
 {
 	int b, i;
 	kern_obj * c, * f;

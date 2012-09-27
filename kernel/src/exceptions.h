@@ -7,6 +7,6 @@
 #ifndef EXCEPTIONS_H
 #define EXCEPTIONS_H
 
-void reg_exceptions();
+void reg_exceptions(void);
 
 #endif

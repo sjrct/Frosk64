@@ -18,7 +18,7 @@ void srand(unsigned s)
 //  -Xor by constant
 //  -rotate by 1 more (or 0 if first, or last = 32) than last value rotated by
 //  -add some constant
-unsigned rand()
+unsigned rand(void)
 {
 	static int rot;
 

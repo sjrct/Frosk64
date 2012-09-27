@@ -6,7 +6,7 @@
 
 #include "paging.h"
 #include "interrupt.h"
-#include "physmem.h"
+#include "pagemgr.h"
 #include "kerndef.h"
 #include "inline_asm.h"
 
@@ -17,10 +17,10 @@
 #define DIRTY_BIT     0x80
 #define NOT_IDENT_BIT 0x200
 
-void init_paging()
+void init_paging(void)
 {
 	void page_fault();
-	register_int(14, (ulong)page_fault, KERNEL_CS, 0x8F);
+	register_int(14, (ulong)page_fault, KERNEL_CS, 0x8E);
 }
 
 static ulong get_entry_addr(ulong baddr, ulong parent, uint shf)
@@ -46,12 +46,12 @@ static ulong check_table(ulong baddr, ulong parent, uint shf, uint fl)
 	}
 
 	if (!(r & PRESENT_BIT)) {
-		r = alloc_phys_pgs(1)->u.pmem.addr | fl | NOT_IDENT_BIT;
+		r = alloc_pages(1, PHYS_PAGES) | fl | NOT_IDENT_BIT;
+		ATQ(eaddr) = r;
 		page_to_kpt0_0(r);
 		
 		for (i = 0; i < 0x1000; i++) ATB(KSPACE_LOC + i) = 0;
 		
-		ATQ(eaddr) = r;
 		r = KSPACE_LOC;
 	}
 		
@@ -61,7 +61,7 @@ static ulong check_table(ulong baddr, ulong parent, uint shf, uint fl)
 static void set_pt_entry(ulong addr, ulong val, ulong fl)
 {
 	ulong t;
-	
+		
 	if (addr >= KSPACE_LOC) {
 		addr -= NON_CANON_SIZE;
 	}
@@ -74,23 +74,23 @@ static void set_pt_entry(ulong addr, ulong val, ulong fl)
 	ATQ(t) = val;
 }
 
-void new_virt_page(ulong addr, ulong fl)
+void page_in(ulong paddr, ulong vaddr, ulong size, uint fl)
 {
-	set_pt_entry(addr, alloc_phys_pgs(1)->u.pmem.addr | fl, fl);
-/*	ulong t;
+	paddr = (paddr & ~0xfff) | fl;
+	vaddr &= ~0xfff;
+	if (size % 0x1000) size = (size & ~0xfff) + 0x1000;
 	
-	if (addr >= KSPACE_LOC) {
-		addr -= NON_CANON_SIZE;
+	while (size > 0) {
+		set_pt_entry(vaddr, paddr, fl);
+		vaddr += 0x1000;
+		paddr += 0x1000;
+		size -= 0x1000;
 	}
-	
-	t = check_table(addr, PML4T_LOC, 39, fl);
-	t = check_table(addr, t, 30, fl);
-	t = check_table(addr, t, 21, fl);
+}
 
-	ATQ(get_entry_addr(addr, t, 12)) = alloc_phys_pgs(1)->u.pmem.addr | fl;
-*/}
+////////////////////////////////////////////////////////////////////////////
 
-kern_obj * alloc_ws()
+kern_obj * alloc_ws(void)
 {
 	kern_obj * o = alloc_kobj();
 	o->type = KOBJ_WORKSPACE;

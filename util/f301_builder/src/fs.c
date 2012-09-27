@@ -120,7 +120,7 @@ static void longseek(FILE * f, unsigned long long loc)
 	fseek(f, loc, SEEK_CUR);
 }
 
-static node * new_node()
+static node * new_node(void)
 {
 	node * n = malloc(sizeof(node));
 
@@ -201,7 +201,7 @@ static node * make_string(char * str)
 static node * add_fs_entry_h(parse_struct * ps, node * parent)
 {
 	node * n = new_node();
-
+	
 	switch (ps->type) {
 	case PST_FILE:
 		n->type = NT_FILE;
@@ -212,7 +212,7 @@ static node * add_fs_entry_h(parse_struct * ps, node * parent)
 			n->u.file.next = add_fs_entry_h(ps->next, parent);
 		} else n->u.file.next = NULL;
 
-		n->u.file.actual = malloc(strlen(ps->u.actual));
+		n->u.file.actual = malloc(strlen(ps->u.actual) + 1);
 		strcpy(n->u.file.actual, ps->u.actual);
 		n->u.file.first_data = alloc_blocks_for_file(ps->u.actual);
 
@@ -303,14 +303,18 @@ static void write_file_data(node * n, FILE * f)
 	char * buffer;
 
 	in = fopen(n->u.file.actual, "r");
-	if (in == NULL) return;
+	if (in == NULL) {
+		fprintf(stderr, "Warning: Could not open file '%s'\n", n->u.file.actual);
+		return;
+	}
 	data = n->u.file.first_data;
 
 	while (data != NULL) {
-		buffer = malloc(data->u.data.block_count * 0x1000);
-		fread(buffer, 1, data->u.data.block_count * 0x1000, in);
+		buffer = calloc(data->u.data.block_count * 0x1000, 1);
+		fread(buffer, 1, (data->u.data.block_count - 1) * 0x1000 + data->u.data.bytes_in_last_block, in);
 		longseek(f, data->u.data.lba * 0x1000);
 		fwrite(buffer, 1, data->u.data.block_count * 0x1000, f);
+
 		free(buffer);
 		data = data->u.data.next;
 	}
@@ -323,8 +327,7 @@ static void write_fs_h(node * n, FILE * f, int add)
 	unsigned zero = 0;
 	int i = 0;
 
-	seek_to_node(f, n->node_ptr);
-	
+	seek_to_node(f, n->node_ptr);	
 	fseek(f, add, SEEK_CUR);
 
 	fputc(n->type, f);
@@ -352,8 +355,7 @@ static void write_fs_h(node * n, FILE * f, int add)
 		if (n->u.file.first_data != NULL) write_fs_h(n->u.file.first_data, f, add);
 		if (n->u.file.next != NULL) write_fs_h(n->u.file.next, f, add);
 
-		write_file_data(n, f);
-
+		if (add == 0) write_file_data(n, f);
 		break;
 		
 	case NT_DIR:
@@ -398,7 +400,6 @@ static void write_fs_h(node * n, FILE * f, int add)
 		if (n->u.indirect.name != NULL) write_fs_h(n->u.indirect.name, f, add);
 		if (n->u.indirect.dest != NULL) write_fs_h(n->u.indirect.dest, f, add);
 		if (n->u.indirect.next != NULL) write_fs_h(n->u.indirect.next, f, add);
-
 		break;
 		
 	case NT_DATA:
@@ -412,7 +413,6 @@ static void write_fs_h(node * n, FILE * f, int add)
 		fwrite((char*)(&n->u.data.bytes_in_last_block), sizeof(int), 1, f);
 
 		if (n->u.data.next != NULL) write_fs_h(n->u.data.next, f, add);
-		
 		break;
 	
 	case NT_STRING:
@@ -422,7 +422,7 @@ static void write_fs_h(node * n, FILE * f, int add)
 		if (n->u.string.next == NULL) fwrite((char*)(&zero), sizeof(int), 1, f);
 		else fwrite((char*)(&n->u.string.next), sizeof(int), 1, f);
 
-		if (n->u.data.next != NULL) write_fs_h(n->u.data.next, f, add);
+		if (n->u.string.next != NULL) write_fs_h(n->u.string.next, f, add);
 		
 		break;
 		

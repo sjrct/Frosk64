@@ -11,7 +11,7 @@
 
 enum {
 	KOBJ_HEADER = 0,
-	KOBJ_PHYSMEM,
+	KOBJ_PAGES,
 	KOBJ_WORKSPACE,
 	KOBJ_PROCESS,
 	KOBJ_THREAD,
@@ -83,8 +83,8 @@ typedef struct kern_obj {
 
 extern int kernobj_no_new_pages;
 
-void init_kobj_mgr();
-kern_obj * alloc_kobj();
+void init_kobj_mgr(void);
+kern_obj * alloc_kobj(void);
 void free_kobj(kern_obj *);
 int verify_kobj(kern_obj *);
 

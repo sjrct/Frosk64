@@ -8,15 +8,16 @@ SHELL   = /bin/sh
 
 TARGET  = kernel.bin
 
-CSRC_1  = kmain.c interrupt.c exceptions.c kernobj.c physmem.c paging.c \
-          sout.c process.c ata.c keyboard.c fs.c kstrlib.c
-ASRC_1  = exceptions.asm irq.asm paging.asm scheduler.asm keyboard.asm
+CSRC_1  = kmain.c interrupt.c exceptions.c kernobj.c pagemgr.c paging.c \
+          cga_text.c process.c ata.c keyboard.c fs.c kstrlib.c pci.c driver.c \
+          ehci.c fbe.c vesa.c graphics.c
+ASRC_1  = exceptions.asm irq.asm paging.asm scheduler.asm keyboard.asm \
+          syscall.asm lock.asm
 
 CC      = gcc
 
-# -fno-toplevel-reorder is only neccesary w/ -O
 ASFLAGS = -felf64 -I$(TOPDIR)/kernel/src/
-CCFLAGS = -c -Wall -m64 -ffreestanding -nostdinc -mcmodel=large -mno-red-zone -O -fno-toplevel-reorder
+CCFLAGS = -c -Wall -m64 -ffreestanding -nostdinc -mcmodel=large -mno-red-zone -I$(TOPDIR)/include
 LDFLAGS = -m64 -ffreestanding -nostdlib -mcmodel=large -mno-red-zone -Tkernel.ld
 
 CSRC    = $(addprefix src/,$(CSRC_1))
@@ -47,4 +48,4 @@ aobj/%.o: src/%.asm
 .PHONY: clean
 clean:
 	-$(cmd) "$(RM) $(TARGET)" "RM $(TARGET)"
-	-$(cmd) "$(RM) $(COBJ) $(AOBJ)" "RM cobj/ aobj/"
+	-$(cmd) "$(RM) -rf cobj aobj" "RM cobj aobj"

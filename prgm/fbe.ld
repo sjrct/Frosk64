@@ -9,7 +9,7 @@ ENTRY(main)
 
 SECTIONS
 {
-	. = 0x100000;
+	. = 0x100000 - 0x10;
 	.fbehdr :
 	{
 		LONG(0xFBE0FBE0)
@@ -36,8 +36,7 @@ SECTIONS
 		* (.bss COMMON)
 	}
 
-	_bss_size = SIZEOF(.bss);
-	_bss_addr = ADDR(.bss);
+	_heap_offset = . - 0x100000;
 
 	/DISCARD/ :
 	{

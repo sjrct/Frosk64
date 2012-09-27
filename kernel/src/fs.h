@@ -7,7 +7,7 @@
 #ifndef FS_H
 #define FS_H
 
-#include "cdef.h"
+#include <cmn/utypes.h>
 
 enum {
 	FS_FREE = 0,
@@ -29,6 +29,7 @@ enum {
 #define PERM_WRITE_ALL   0x20
 
 #define STR_CHARS_PER_NODE 18
+#define SECTS_PER_BLOCK 8
 
 #pragma pack(push, 1)
 typedef struct fs_node {
@@ -82,10 +83,25 @@ typedef struct fs_node {
 } fs_node;
 #pragma pack(pop)
 
-void init_fs();
-fs_node * fs_resolve_ptr(uint);
-fs_node * fs_locate_node(const char *, fs_node *);
+typedef fs_node * handle_t;
 
-extern uchar fs_drive;
+void init_fs(void);
+
+handle_t fs_aquire(const char *, handle_t, int);
+int fs_release(handle_t);
+
+ulong fs_read(handle_t, char *, ulong, ulong);
+ulong fs_write(handle_t, const char *, ulong, ulong);
+
+ulong fs_get_size(handle_t);
+int fs_get_filename(handle_t, char *, ulong);
+ulong fs_get_perm(handle_t);
+int fs_set_perm(handle_t, ulong);
+
+handle_t fs_create_file(const char *, handle_t, handle_t);
+handle_t fs_create_dir(const char *, handle_t, handle_t);
+handle_t fs_create_indirect(const char *, const char *, handle_t, handle_t);
+
+int fs_remove(handle_t);
 
 #endif

@@ -1,0 +1,8 @@
+ata0: enabled=1, ioaddr1=0x1F0, ioaddr2=0x3F0, irq=15
+ata0-master: type=disk, path="./frosk.img", mode=flat, cylinders=1, heads=16, spt=63, translation=lba
+config_interface: wx
+display_library: wx
+boot: disk
+log: /dev/stderr
+panic: action=report
+

@@ -16,7 +16,6 @@ extern swap_ws
 extern head_process
 extern head_thread
 
-
 global start_timer
 start_timer:
 	mov al, 0x30	; interrupt on terminal count mode
@@ -32,6 +31,17 @@ global context_switch
 context_switch:
 	PUSH_CALLER_REGS
 	push rbx
+	
+;extern putu
+;extern putnl
+;	mov rax, rsp
+;	sub rsp, 16
+;;	mov [rsp], rax
+;	mov qword [rsp + 8], 0x10
+;	call putnl
+;	mov rdi, rsp
+;	call putu
+;	add rsp, 16
 
 	mov rbx, [head_thread]
 	mov rax, rbx
@@ -41,7 +51,7 @@ context_switch:
 .search_loop:
 	cmp byte [rbx + 1], 0 ; is thread ready?
 	je .break
-
+	
 	mov rbx, [rbx + 24]
 	cmp rax, rbx ; no ready threads found?
 	je .return_early
@@ -55,17 +65,12 @@ context_switch:
 	mov rax, [rbx + 24]
 	mov [head_thread], rax
 
-	; swap in the thread's/process' pages
-	mov rdi, [rbx + 8]
-	mov rdi, [rdi + 16]
-	mov rsi, STACK_WS
-	call swap_ws
-	
+	; swap in the process' code pages
 	mov rdi, [rbx + 16]
 	mov rdi, [rdi + 8]
 	mov rsi, CODE_DATA_WS
 	call swap_ws
-	
+
 	; save callee-save registers
 	push rbp
 	push r12
@@ -83,13 +88,24 @@ context_switch:
 	push rax
 	mov rax, .return_here
 	push rax
-	
+
 	; change old threads status to ready and save rsp
 	mov rax, [current_thread]
+	test rax, rax
+	jz .ct_null
 	mov byte [rax + 1], 0
 	mov rax, [rax + 8]
-	mov [rax + 24], rsp
+ 	mov [rax + 24], rsp
+.ct_null:
+	mov [current_thread], rbx
 
+	; setup temporary stack and swap in stack
+	mov rsp, STACK_LOC
+	mov rdi, [rbx + 8]
+	mov rdi, [rdi + 16]
+	mov rsi, STACK_WS
+	call swap_ws
+	
 	; load the new rsp
 	mov rax, [rbx + 8]
 	mov rsp, [rax + 24]
@@ -102,7 +118,7 @@ context_switch:
 	mov al, 0xff
 	out 0x40, al
 	out 0x40, al
-		
+
 	iretq
 .return_here:
 

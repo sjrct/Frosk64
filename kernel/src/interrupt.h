@@ -9,7 +9,7 @@
 
 #include "cdef.h"
 
-void init_idt();
+void init_idt(void);
 void register_int(int, ulong, ushort, uchar);
 
 #endif

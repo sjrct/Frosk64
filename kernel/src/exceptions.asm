@@ -9,32 +9,47 @@
 
 [section .text]
 
-extern outs
+extern driver_call
 
 global div0_fault
 div0_fault:
-	mov rdi, div0_msg
-	call outs
-	iretq
-	
+	mov rdi, 3
+	mov rsi, 3
+	mov rdx, div0_msg
+	call driver_call
+.lp: hlt
+	jmp .lp
+
+
 global gp_fault
 gp_fault:
-	mov rdi, gpf_msg
-	call outs
-	iretq
-	
+	mov rdi, 3
+	mov rsi, 3
+	mov rdx, gpf_msg
+	call driver_call
+.lp: hlt
+	jmp .lp
+
+
 global dbl_fault
 dbl_fault:
-	mov rdi, dbl_msg
-	call outs
+	mov rdi, 3
+	mov rsi, 3
+	mov rdx, dbl_msg
+	call driver_call
 .lp:	hlt
 	jmp .lp
 
+
 global undef_int
 undef_int:
-	mov rdi, uint_msg
-	call outs
-	iretq
+	mov rdi, 3
+	mov rsi, 3
+	mov rdx, uint_msg
+	call driver_call
+.lp: hlt
+	jmp .lp
+
 
 [section .rodata]
 

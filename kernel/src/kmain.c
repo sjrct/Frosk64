@@ -7,55 +7,95 @@
 #include "interrupt.h"
 #include "exceptions.h"
 #include "kernobj.h"
-#include "physmem.h"
+#include "pagemgr.h"
 #include "paging.h"
-#include "sout.h"
 #include "irq.h"
 #include "inline_asm.h"
-#include "process.h"
-#include "keyboard.h"
+#include "fbe.h"
 #include "fs.h"
+#include "driver.h"
 #include "ata.h"
+#include "ehci.h"
+#include "syscall.h"
+
+#include "cga_text.h"
+#include "vesa.h"
 
 #define START_PRGM_MAX_SIZE 0x1000
 
+// defined in linker script
 extern char * const _bss_addr;
 extern const uint _bss_size;
 
-void init_bss();
+static void init_bss(void);
 
 void __attribute__ ((noreturn)) kmain()
 {
-	fs_node * n;
-	ushort buffer[START_PRGM_MAX_SIZE / 2];
-	
+//	unumber num;
+//	pixel p;
+//	unsigned r, g, b;
+
+	uchar buffer[START_PRGM_MAX_SIZE];
+	handle_t hndl;
+
 	init_bss();
 	init_kobj_mgr();
-	init_phys_mem();
+	init_page_mgr();
+
+	init_drivers();
 	init_fs();
 	
 	reg_exceptions();
 	init_irqs();
 	init_paging();
-//	init_processes();
-	init_keyboard();
+	init_processes();
+	init_syscalls();
 	init_idt();
+//	init_tss();
 	
-//	start_timer();
+	init_graphics();		
+/*	
+	num.n = cur_vmi->phys_base_ptr;
+	num.b = 0x10;
+	driver_call(DRIVER_ID_CGA_TEXT, DRIVER_FUNC_TEXT_PUTU, &num);
+	driver_call(DRIVER_ID_CGA_TEXT, DRIVER_FUNC_TEXT_PUTNL, NULL);
+	num.n = cur_vmi->xres;
+	num.b = 10;
+	driver_call(DRIVER_ID_CGA_TEXT, DRIVER_FUNC_TEXT_PUTU, &num);
+	
+	while (1);
 
-	n = fs_locate_node("/sys/prgm/start/start", NULL);
-	n = fs_resolve_ptr(n->u.file.first_data_ptr);
-	ata_read(n->u.data.lba * 8, n->u.data.blocks * 8, fs_drive, buffer);
-	
-	outn(ATQ(buffer), 0x10);
+	init_vesa();
+	r = 128;
+	g = 0;
+	b = 255;
+	for (p.y = 0; p.y < 768; p.y++) {
+		for (p.x = 0; p.x < 1024; p.x++) {
+			p.c = r | (g << 8) | (b << 16);
+			plot(&p);
+			p.c += 1;
+			g++;
+			b--;
+		}
+		r++;
+	}
+	while (1);
+*/
+
+	hndl = fs_aquire("/sys/prgm/start/start", 0, 1);
+	fs_read(hndl, (char*)buffer, START_PRGM_MAX_SIZE / 0x1000, 0);
+	fs_release(hndl);
+
+	exec_fbe(buffer, START_PRGM_MAX_SIZE, NULL, 0, 0xFF);
+	start_timer();
 
 	while(1) HLT;
 }
 
-void init_bss()
+static void init_bss(void)
 {
-	uint i;
-	for (i = 0; i < _bss_size; i++) {
-		_bss_addr[i] = 0;
+	ulong i;
+	for (i = 0; i < (ulong)&_bss_size; i++) {
+		((char*)&_bss_addr)[i] = 0;
 	}
 }

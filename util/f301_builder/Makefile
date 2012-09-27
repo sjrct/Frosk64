@@ -11,10 +11,10 @@ LDFLAGS =
 TARGET  = f301_builder
 
 TSRCS   = main.c fs.c parse.c error.c
-SRCS	= $(TSRCS:%=src/%)
+SRCS    = $(TSRCS:%=src/%)
 
-TOBJS	= $(SRCS:.c=.o)
-OBJS	= $(TOBJS:src/%=obj/%)
+TOBJS   = $(SRCS:.c=.o)
+OBJS    = $(TOBJS:src/%=obj/%)
 
 
 .PHONY: all
@@ -32,5 +32,4 @@ obj/%.o: src/%.c
 .PHONY: clean
 clean:
 	-$(cmd) "$(RM) $(TARGET)" "RM $(TARGET)"
-	-$(cmd) "$(RM) $(OBJS)" "RM obj/"
-
+	-$(cmd) "$(RM) -rf obj" "RM obj"

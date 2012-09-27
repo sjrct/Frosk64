@@ -5,118 +5,113 @@
 //
 
 #include "ata.h"
+#include "kerndef.h"
 #include "inline_asm.h"
-#include "sout.h"
 
 #define BUSY_BIT      0x80
-
 #define READ_COMMAND  0x20
 #define WRITE_COMMAND 0x30
 
-static void wait_busy(ushort base_port)
+static ata_source active = { 0x1F0, 0, 1 };
+
+static void wait_busy(void)
 {
 	uchar status;
 	do {
-		INB(status, base_port + 7);
+		INB(status, active.base_port + 7);
 	} while (status & BUSY_BIT);
 }
 
-static ushort get_bp(uchar drive)
+static void ata_common(ulong lba, uint blcks, uchar cmd)
 {
-	ushort base_port;
+	OUTB(active.base_port + 6, 0xE0 | ((lba >> 24) & 0xf) | active.is_slave);
+	OUTB(active.base_port + 1, 0);
+	OUTB(active.base_port + 2, (uchar)blcks);
+	OUTB(active.base_port + 3, (uchar)lba);
+	OUTB(active.base_port + 4, (uchar)(lba >> 8));
+	OUTB(active.base_port + 5, (uchar)(lba >> 16));
 
-	switch (drive) {
-	case 0x00: base_port = 0x3F0; break;
-	case 0x01: base_port = 0x370; break;
-	case 0x80: base_port = 0x1F0; break;
-	case 0x81: base_port = 0x170; break;
-	default:
-		outs("Error: Drive number ");
-		outn(drive, 0x10);
-		outs("h is not valid, defaulting to 80h.\n");
-		base_port = 0x1F0;
+	OUTB(active.base_port + 7, cmd);
+
+	// delay ~400ns
+	IO_WAIT;
+	IO_WAIT;
+	IO_WAIT;
+	IO_WAIT;
+}
+
+int ata_toggle_source(ata_source * s)
+{
+	ata_source t = active;
+	if (s->valid) {
+		active.base_port = s->base_port;
+		active.is_slave = !!s->is_slave << 4;
+		active.valid = 1;
 	}
+	*s = t;
 	
-	return base_port;
+	return 0;
 }
 
-static ushort ata_common(ulong lba, uint blcks, uchar drive, uchar cmd)
+int ata_read(char * data, ulong size, ulong offset)
 {
-	// Warning: assumes master drive for now
-	
-	ushort base_port = get_bp(drive);
-	
-	OUTB(base_port + 6, 0xE0 | ((lba >> 24) & 0xf));
-	OUTB(base_port + 1, 0);
-	OUTB(base_port + 2, (uchar)blcks);
-	OUTB(base_port + 3, (uchar)lba);
-	OUTB(base_port + 4, (uchar)(lba >> 8));
-	OUTB(base_port + 5, (uchar)(lba >> 16));
+	uint i, j;
 
-	OUTB(base_port + 7, cmd);
+	ata_common(offset, size, READ_COMMAND);
 
-	IO_WAIT;
-	IO_WAIT;
-	IO_WAIT;
-	IO_WAIT;
-	
-	return base_port;
+	for (i = 0; i < size; i++) {
+		wait_busy();
+		for (j = 0; j < 0x100; j++)  {
+			INW(((ushort*)data)[i * 0x100 + j], active.base_port);
+		}
+	}
+
+	return 0;
 }
 
-int ata_identify(uchar drive)
+int ata_write(char * data, ulong size, ulong offset)
+{
+	uint i, j;
+
+	ata_common(offset, size, WRITE_COMMAND);
+
+	for (i = 0; i < size; i++) {
+		wait_busy();
+		for (j = 0; j < 0x100; j++)  {
+			OUTW(active.base_port, ((ushort*)data)[i * 0x100 + j]);
+		}
+	}
+
+	return 0;
+}
+
+// Maybe actually use this function ?
+/*
+static int ata_identify(void)
 {
 	uchar v1, v2, p1, p2;
-	ushort base_port = get_bp(drive);
 	
 	// check for floating bus
-	INB(v1, base_port + 7);
-	if (v1 == 0xff) return ATA_ERR_FLOATING_BUS;
+	INB(v1, active.base_port + 7);
+	if (v1 == 0xff) return 0;
 	
 	// check that is ATA
-	INB(p1, base_port + 2);
-	INB(p2, base_port + 3);
+	INB(p1, active.base_port + 2);
+	INB(p2, active.base_port + 3);
 	
-	OUTB(base_port + 2, 0x12); // values are arbitrary
-	OUTB(base_port + 3, 0x34);
-	INB(v1, base_port + 2);
-	INB(v2, base_port + 3);
+	OUTB(active.base_port + 2, 0x12); // values are arbitrary
+	OUTB(active.base_port + 3, 0x34);
+	INB(v1, active.base_port + 2);
+	INB(v2, active.base_port + 3);
 	
-	OUTB(base_port + 2, p1);
-	OUTB(base_port + 3, p2);
+	OUTB(active.base_port + 2, p1);
+	OUTB(active.base_port + 3, p2);
 	
-	if (v1 != 0x12 || v2 != 0x34) return ATA_ERR_NOT_ATA_DEV;
+	if (v1 != 0x12 || v2 != 0x34) return 0;
 	
 	// identify command
+	// TODO
 	
-	return ATA_SUCCESS;
+	return 1;
 }
-
-void ata_read(ulong lba, uint blcks, uchar drive, ushort * dst)
-{
-	uint i, j;
-	ushort base_port;
-
-	base_port = ata_common(lba, blcks, drive, READ_COMMAND);
-
-	for (i = 0; i < blcks; i++) {
-		wait_busy(base_port);
-		for (j = 0; j < 0x100; j++)  {
-			INW(dst[i * 0x200 + j * 2], base_port);
-		}
-	}
-}
-
-void ata_write(ulong lba, uint blcks, uchar drive, ushort * src)
-{
-	uint i, j;
-	ushort base_port;
-
-	base_port = ata_common(lba, blcks, drive, WRITE_COMMAND);
-	
-	for (i = 0; i < blcks; i++) {
-		wait_busy(base_port);
-		for (j = 0; j < 0x100; j++)  {
-			OUTW(base_port, src[i * 0x200 + j * 2]);
-		}
-	}
-}
+*/

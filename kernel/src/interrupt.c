@@ -29,7 +29,7 @@ const struct {
 };
 #pragma pack(pop)
 
-void init_idt()
+void init_idt(void)
 {
 	asm volatile ("cli");
 	asm volatile ("lidt idt_ptr(%rip)");

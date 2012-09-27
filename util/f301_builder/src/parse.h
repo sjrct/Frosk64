@@ -38,7 +38,7 @@ typedef struct parse_struct {
 	struct parse_struct * next;
 } parse_struct;
 
-parse_struct * parse_next();
+parse_struct * parse_next(FILE *, perm, perm, perm);
 void free_parse_struct(parse_struct *);
 
 #endif

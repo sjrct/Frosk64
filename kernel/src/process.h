@@ -23,17 +23,15 @@ enum {
 	PROC_PRIV_SUPER,
 };
 
-#define PROC_PRIORITY_IDLE 0
-
 //
 // init_processes: Initializes the process-related data
 //
-void init_processes();
+void init_processes(void);
 
 //
 // start_timer: Starts the timer used for context switching
 //
-void start_timer();
+void start_timer(void);
 
 //
 // spawn_process: Spawns a new process
@@ -49,7 +47,7 @@ void start_timer();
 //
 // The parent process can be NULL
 //   
-kern_obj * spawn_process(uchar *, ulong, ulong, ulong, kern_obj *, uchar, uchar);
+kern_obj * spawn_process(const uchar *, ulong, ulong, ulong, kern_obj *, uchar, uchar);
 
 //
 // spawn_thread: Spawns a new thread from a process

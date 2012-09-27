@@ -6,15 +6,80 @@
 
 [bits 16]
 
+%macro ERROR_CHECK 1
+	%1 error16
+	inc byte [error16_num]
+%endmacro
+
+;;;;; 16-bit code section ;;;;;
+
+	dd 0
 boot2_start:
 	cli
 	cld
 	
-	mov [DRIVE_LOC], dl
+	; save data for kernel
+	mov [PARTIT_LOC], esi
 
-;	mov ax, 0x2401
-;	int 0x15
+	; check that drive extensions are present
+	mov ah, 0x41
+	mov bx, 0x55AA
+	int 0x13
+	ERROR_CHECK jc ; 0
 
+	; get base port for boot device
+	sub sp, 0x42
+	xor cx, cx
+	
+	mov ah, 0x48
+	xor esi, esi
+	mov si, sp
+	mov byte [si], 0x42
+	int 0x13
+	ERROR_CHECK jc ; 1
+
+	mov bx, sp
+	mov si, [bx]
+	cmp si, 0x1A
+	ERROR_CHECK jbe ; 2
+	mov eax, [bx + 0x1A]
+	cmp eax, 0xffffffff
+	jne use_dpte
+	cmp si, 0x1E
+	jbe error16 ; 3
+	
+	mov eax, [bx + 40]
+	and eax, 0xffffff
+	cmp eax, 'ATA'
+	jne not_ata ; assume master drive if not ata[pi]
+	mov cl, [bx + 56]
+	shl cl, 4
+not_ata:
+
+	mov eax, [bx + 36]
+	and eax, 0xffffff
+	cmp eax, 'PCI'
+	jne is_legacy
+	mov ch, 1
+	mov cl, [bx + 50]
+is_legacy:
+	mov ax, [bx + 48]
+
+	jmp got_bp
+
+use_dpte:
+	mov ax, [bx + 0x1C]
+	mov bx, [bx + 0x1A]
+	mov fs, ax
+	mov ax, [fs:bx]
+	mov cl, [fs:bx + 4]
+
+got_bp:
+	mov [DISK_INF_LOC], ax
+	mov [DISK_INF_LOC + 2], cx
+	inc byte [error16_num]
+	add sp, 0x42
+	
 	; enable a20 line
 	call a20_wait_2
 	mov al, 0xAD
@@ -66,20 +131,18 @@ mem_map_loop:
 	jmp mem_map_loop
 .break:
 	cmp di, MEM_MAP_LOC + 8
-	je error16
+	ERROR_CHECK je ; 4
 	mov [MEM_MAP_LOC], di
 	pop edx
 
 	; read primary fs block
 	mov si, dap2
-	call do_read
+	call do_read ; 5
 
 	; check that is correct file system
 	mov ax, [FST0_LOC]
 	cmp ax, 0xF301
-	je is_good_fs
-	jmp error16
-is_good_fs:
+	ERROR_CHECK jne ; 6
 
 	; locate kernel file in predirectory
 	; TODO kernel not found code
@@ -130,7 +193,21 @@ found_kernel:
 	mov eax, [bx + 12]
 	mov [dap2 + 12], eax
 	mov si, dap2
-	call do_read
+	call do_read ; 7
+	
+	; set the graphics mode
+	mov ax, 0x4f01
+	mov cx, GRAPHICS_MODE
+	mov di, VM_INFO_LOC
+	int 0x10
+	cmp ax, 0x4f
+	ERROR_CHECK jne ; 8
+	
+	mov ax, 0x4f02
+	mov bx, GRAPHICS_MODE
+	int 0x10
+	cmp ax, 0x4f
+	ERROR_CHECK jne ; 9
 
 	; switch to protected mode
 	cli
@@ -166,12 +243,26 @@ resolve_fst0_ptr:
 	ret
 
 error16:
+	mov bx, error16_ah + 2
+.ah_loop:
+	test ah, ah
+	jz .out
+	mov al, ah
+	and al, 0xf
+	add al, '0'
+	mov [bx], al
+	sub bx, 2
+	shr ah, 4
+	jmp .ah_loop
+
+.out:
 	mov ax, 0xb800
 	mov es, ax
 	xor di, di
 	mov si, error16_msg
 	mov cx, error16_msg_len
 	rep movsb
+
 .loop:
 	hlt
 	jmp .loop
@@ -189,6 +280,7 @@ do_read:
 	loop .read_loop
 	jmp error16
 .read_good:
+	inc byte [error16_num]
 	ret
 
 
@@ -238,6 +330,8 @@ pg_loop:
 	jne pg_loop
 
 	; enable long mode and paging
+	lgdt [gdt64]
+
 	mov eax, cr4
 	or al, 0x20
 	mov cr4, eax
@@ -252,9 +346,7 @@ pg_loop:
 	
 	mov eax, cr0
 	or eax, 0x80000000
-	mov cr0, eax
-	
-	lgdt [gdt64]
+	mov cr0, eax	
 
 	jmp KERNEL_CS:long_code_start
 
@@ -277,7 +369,11 @@ kernel_name:
 kernel_name_length: equ $ - kernel_name
 
 error16_msg:
-	db 'E', 4, 'r', 4, 'r', 4, 'o', 4, 'r', 4
+	db 'E', 4, 'r', 4, 'r', 4, 'o', 4, 'r', 4, 0, 0
+error16_num:
+	db '0', 4, 0, 0
+error16_ah:
+	db '0', 4, '0', 4
 error16_msg_len: equ $ - error16_msg
 
 ; original contains data for fst0
@@ -315,7 +411,7 @@ gdt32:
 	db 0x0
 .end:
 
-; global descriptor table for 64 bit mode - still temporary
+; global descriptor table for 64 bit mode
 gdt64:
 	dw .end - .null_seg
 	dd .null_seg
@@ -325,6 +421,24 @@ gdt64:
 	dq 0x0020980000000000
 .data_seg:
 	dq 0x0000920000000000
+.ucode_seg:
+	dq 0x0020F80000000000
+.udata_seg:
+	dq 0x0000F20000000000
+.tss_seg:
+	dw 0x0068
+	dw TSS_SEG_LOC & 0xFFFF
+	db (TSS_SEG_LOC >> 16) & 0xFF
+	db 0x40
+	db 0x89
+	db (TSS_SEG_LOC >> 24) & 0xFF
+
+	dw 0x0068
+	dw TSS_SEG_LOC & 0xFFFF
+	db (TSS_SEG_LOC >> 16) & 0xFF
+	db 0x40
+	db 0x89
+	db (TSS_SEG_LOC >> 24) & 0xFF
 .end:
 
 times 0x1000 - ($ - $$) db 0

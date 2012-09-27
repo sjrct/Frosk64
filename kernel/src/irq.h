@@ -7,7 +7,7 @@
 #ifndef IRQ_H
 #define IRQ_H
 
-void init_irqs();
+void init_irqs(void);
 void enable_irq(int);
 void disable_irq(int);
 

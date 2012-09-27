@@ -10,15 +10,24 @@
 [bits 16]
 
 	jmp 0:start
+	
 start:
+	; get the offset for the partition
+	xor eax, eax
+	mov ax, ds
+	shl eax, 4
+	and esi, 0xffff
+	add esi, eax
+	mov edi, esi
+
 	; setup stack (under bootloader for now)
 	mov sp, BOOT1_LOC
 	xor ax, ax
 	mov ds, ax
 	mov ss, ax
 	mov es, ax
-
-	; TODO: get the offset for the partition
+	mov fs, ax
+	mov gs, ax
 
 	; load the second stage bootloader
 	mov cx, 4

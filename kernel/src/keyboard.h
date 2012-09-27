@@ -7,9 +7,7 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-void init_keyboard();
-int getsc();
-
-int sc_to_ascii(int s);
+#define KEYBOARD_FUNC_COUNT 3
+extern int (*keyboard_functions[KEYBOARD_FUNC_COUNT])();
 
 #endif

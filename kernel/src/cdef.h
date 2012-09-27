@@ -7,12 +7,9 @@
 #ifndef CDEF_H
 #define CDEF_H
 
-#define NULL 0
+#include <cmn/utypes.h>
 
-typedef unsigned char  uchar;
-typedef unsigned short ushort;
-typedef unsigned int   uint;
-typedef unsigned long  ulong;
+#define NULL 0
 
 #define ATB(X) (*((uchar *) (X)))
 #define ATW(X) (*((ushort *)(X)))

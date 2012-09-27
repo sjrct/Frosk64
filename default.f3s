@@ -4,6 +4,13 @@ d:[name = @, contents = {
 
 d:[name = /, read = owner, write = owner, contents = {
 	d:[name = prgm, contents = {
+		d:[name = fui, contents = {
+			f:[name = fui, actual = prgm/fui/fui]
+		}]
+		
+		d:[name = frash, contents = {
+			f:[name = frash, actual = prgm/frash/frash]
+		}]
 	}]
 
 	d:[name = user, contents = {
@@ -15,7 +22,7 @@ d:[name = /, read = owner, write = owner, contents = {
 		d:[name = prgm, contents = {
 			d:[name = start, contents = {
 				f:[name = start, actual = prgm/start/start]
-				f:[name = start_prgms.lst, actual = prgm/start/start/start_prgms.lst]
+				f:[name = run_prgms.lst, actual = prgm/start/run_prgms.lst]
 			}]
 		}]
 	}]

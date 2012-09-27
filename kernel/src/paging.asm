@@ -10,7 +10,9 @@
 
 %include "kerndef.h"
 
-extern new_virt_page
+extern alloc_pages
+extern page_in
+
 
 global page_fault
 page_fault:
@@ -19,19 +21,28 @@ page_fault:
 	PUSH_CALLER_REGS
 	pushfq
 	
-	mov rsi, [rbp + 8]
+	mov rcx, [rbp + 8]
 	
-	test rsi, 1
+	test rcx, 1
 	jz .not_present
 	
 	; TODO not-privledged error
 	jmp .return
 	
 .not_present:
-	and rsi, 4
-	or rsi, 3
-	mov rdi, cr2
-	call new_virt_page
+	and rcx, 4
+	or rcx, 3
+	push rcx
+
+	mov rdi, 1
+	mov rsi, 0
+	call alloc_pages
+
+	pop rcx
+	mov rdi, rax
+	mov rsi, cr2
+	mov rdx, 1
+	call page_in
 
 .return:
 	popfq

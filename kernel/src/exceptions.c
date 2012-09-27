@@ -17,7 +17,7 @@ void undef_int();
 #define DBL_INT  0x8
 #define GPF_INT  0xD
 
-void reg_exceptions()
+void reg_exceptions(void)
 {
 	int i;
 	for (i = 0; i < 0x100; i++) {
