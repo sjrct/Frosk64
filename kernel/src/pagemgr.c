@@ -68,7 +68,7 @@ ulong alloc_pages(uint sz, page_type ty)
 {
 	ulong addr;
 	kern_obj * cur = head[ty];
-	kern_obj * prev = NULL;;
+	kern_obj * prev = NULL;
 
 	sz *= 0x1000;
 
