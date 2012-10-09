@@ -53,34 +53,7 @@ void __attribute__ ((noreturn)) kmain()
 	init_idt();
 //	init_tss();
 	
-	init_graphics();		
-/*	
-	num.n = cur_vmi->phys_base_ptr;
-	num.b = 0x10;
-	driver_call(DRIVER_ID_CGA_TEXT, DRIVER_FUNC_TEXT_PUTU, &num);
-	driver_call(DRIVER_ID_CGA_TEXT, DRIVER_FUNC_TEXT_PUTNL, NULL);
-	num.n = cur_vmi->xres;
-	num.b = 10;
-	driver_call(DRIVER_ID_CGA_TEXT, DRIVER_FUNC_TEXT_PUTU, &num);
-	
-	while (1);
-
-	init_vesa();
-	r = 128;
-	g = 0;
-	b = 255;
-	for (p.y = 0; p.y < 768; p.y++) {
-		for (p.x = 0; p.x < 1024; p.x++) {
-			p.c = r | (g << 8) | (b << 16);
-			plot(&p);
-			p.c += 1;
-			g++;
-			b--;
-		}
-		r++;
-	}
-	while (1);
-*/
+	init_graphics();
 
 	hndl = fs_aquire("/sys/prgm/start/start", 0, 1);
 	fs_read(hndl, (char*)buffer, START_PRGM_MAX_SIZE / 0x1000, 0);

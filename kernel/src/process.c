@@ -18,7 +18,6 @@ void init_processes(void)
 {
 	void context_switch();
 	register_int(IRQ0 + IRQ_TIMER, (ulong)context_switch, KERNEL_CS, 0x8E);
-	enable_irq(IRQ_TIMER);
 }
 
 kern_obj * spawn_process(const uchar * cd, ulong csz, ulong dsz, ulong bsz, kern_obj * par, uchar priv, uchar priority)
@@ -71,7 +70,7 @@ kern_obj * spawn_process(const uchar * cd, ulong csz, ulong dsz, ulong bsz, kern
 		free_pages(pbase, pgs, PHYS_PAGES);
 		return NULL;
 	}
-	
+
 	return proc;
 }
 
@@ -90,7 +89,7 @@ kern_obj * spawn_thread(kern_obj * proc, int (*func)())
 		thrd->u.thrd.next = head_thread->u.thrd.next;
 		head_thread->u.thrd.next = thrd;
 	}
-
+	
 	thrd->u.thrd.sub = alloc_kobj();
 	thrd->u.thrd.sub->type = KOBJ_THREAD_SUB;
 	thrd->u.thrd.sub->u.thrd2.stack_ws = alloc_ws();

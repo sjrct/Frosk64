@@ -11,6 +11,7 @@
 
 %include "kerndef.h"
 
+extern enable_irq
 extern swap_ws
 
 extern head_process
@@ -18,6 +19,8 @@ extern head_thread
 
 global start_timer
 start_timer:
+	mov rdi, 0	; timer irq number
+	call enable_irq
 	mov al, 0x30	; interrupt on terminal count mode
 	out 0x43, al
 	mov al, 1
@@ -32,17 +35,6 @@ context_switch:
 	PUSH_CALLER_REGS
 	push rbx
 	
-;extern putu
-;extern putnl
-;	mov rax, rsp
-;	sub rsp, 16
-;;	mov [rsp], rax
-;	mov qword [rsp + 8], 0x10
-;	call putnl
-;	mov rdi, rsp
-;	call putu
-;	add rsp, 16
-
 	mov rbx, [head_thread]
 	mov rax, rbx
 	test rbx, rbx
@@ -99,7 +91,7 @@ context_switch:
 .ct_null:
 	mov [current_thread], rbx
 
-	; setup temporary stack and swap in stack
+	; swap in stack
 	mov rsp, STACK_LOC
 	mov rdi, [rbx + 8]
 	mov rdi, [rdi + 16]
@@ -118,7 +110,7 @@ context_switch:
 	mov al, 0xff
 	out 0x40, al
 	out 0x40, al
-
+	
 	iretq
 .return_here:
 
@@ -146,3 +138,4 @@ context_switch:
 [section .data]
 
 current_thread: dq 0
+msg: db `zxcv\n`, 0

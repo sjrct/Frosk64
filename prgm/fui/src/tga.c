@@ -4,24 +4,86 @@
 // written by sjrct
 //
 
-#include <frosk.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include "tga.h"
 
-void show_tga(const char * fn)
+#define NODATA      0
+#define COLORMAPPED 1
+#define TRUECOLOR   2
+#define MONOCHROME  3
+#define ENCODED     8
+
+#pragma pack(push, 1)
+typedef struct {
+	uchar  identsz;
+	uchar  col_map_type;
+	uchar  img_type;
+	ushort col_map_start;
+	ushort col_map_len;
+	uchar  col_map_bits;
+	ushort xstart;
+	ushort ystart;
+	ushort width;
+	ushort height;
+	uchar  bpp;
+	uchar  desc;
+} tgah;
+#pragma pack(pop)
+
+int parse_tga(const char * buf, uint sz, tga_image * to)
 {
-	handle_t h;
-	long off = 0;
-	char fd[0x1000];
-	char * sl;
-	int x, y, sx, sy;
+	uchar pixel[4];
+	uchar len;
+	ulong i, j, k, l, size;
+	tgah * hdr;
 	
-	h = fs_aquire(fn, 0, 1);
-	if (!h) return;
+	hdr = (tgah*)buf;
+	to->bpp = hdr->bpp;
+	to->w = hdr->width;
+	to->h = hdr->height;
+	buf += sizeof(tgah) + hdr->identsz;
 	
-	sx = *((short*)(fd + 12));
-	sy = *((short*)(fd + 14));
-	sl = malloc(sx * 3);
+	size = to->w * to->h * to->bpp;
+	to->data = malloc(size);
+	
+	switch (hdr->img_type) {
+	case TRUECOLOR:
+		if (to->col_map_type) return false;
+		memcpy(to->data, buf, size);
+		break;
+	
+	case TRUECOLOR | ENCODED:
+		if (to->col_map_type) return false;
 		
-	fs_release(h);
+		for (i = l = 0; l < size;) {
+			len = buf[i++];
+			
+			if (len & 0x80) {
+				for (k = 0; k < to->bpp; k++) {
+					pixel[k] = buf[i++];
+				}
+				
+				for (j = 0; j < len - 127; j++) {
+					for (k = 0; k < to->bpp; k++) {
+						to->data[l++] = pixel[k];
+					}
+				}
+			} else {
+				for (j = 0; j < len + 1; j++) {
+					for (k = 0; k < to->bpp; k++) {
+						to->data[l++] = buf[i++];
+					}
+				}
+			}
+		}
+		break;
+	
+	default:
+		return false;
+	}
+	
+	return true;
 }
+

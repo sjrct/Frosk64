@@ -12,7 +12,6 @@
 
 void init_paging(void);
 void page_in(ulong, ulong, ulong, uint);
-//void new_virt_page(ulong, ulong);
 
 kern_obj * alloc_ws(void);
 void free_ws(kern_obj *);

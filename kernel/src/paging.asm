@@ -12,7 +12,9 @@
 
 extern alloc_pages
 extern page_in
+extern add_pgs_to_ws
 
+extern cur_ws
 
 global page_fault
 page_fault:
@@ -25,8 +27,10 @@ page_fault:
 	
 	test rcx, 1
 	jz .not_present
-	
+
 	; TODO not-privledged error
+	mov rax, 0xc0debeef
+	jmp $
 	jmp .return
 	
 .not_present:
@@ -37,11 +41,20 @@ page_fault:
 	mov rdi, 1
 	mov rsi, 0
 	call alloc_pages
-
-	pop rcx
-	mov rdi, rax
+	push rax
+	
+	mov rdi, [cur_ws]
 	mov rsi, cr2
-	mov rdx, 1
+	and rsi, ~0xfff
+	mov rdx, rax
+	mov rcx, 0x1000
+	mov r8, CODE_DATA_WS
+	call add_pgs_to_ws
+
+	pop rdi
+	pop rcx
+	mov rsi, cr2
+	mov rdx, 0x1000
 	call page_in
 
 .return:

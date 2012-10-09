@@ -7,6 +7,15 @@
 #ifndef TGA_H
 #define TGA_H
 
-void show_tga(const char * fn);
+#include <cmn/utypes.h>
+
+typedef struct {
+	uint w, h;
+	uchar bpp;
+	uchar * data;
+} tga_image;
+
+int parse_tga(const char *, uint, tga_image *);
+void show_tga(tga_image *);
 
 #endif

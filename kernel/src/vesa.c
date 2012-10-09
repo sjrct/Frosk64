@@ -8,6 +8,7 @@
 #include "kerndef.h"
 #include "inline_asm.h"
 #include "paging.h"
+#include "pagemgr.h"
 
 #define GR_ADDR_REG 0x3CE
 
@@ -17,15 +18,26 @@
 #define DATA_ROT     3
 #define GR_MODE      5
 #define BIT_MASK     8
-
+//#include <cmn/io.h>
 video_mode_info * cur_vmi = (video_mode_info*)VM_INFO_LOC;
-ulong virt_addr = 0;
+static ulong virt_addr = 0;
 
 void init_vesa(void)
 {
-//	virt_addr = alloc_virt_kpages(
-//		cur_vmi->xres * (cur_vmi->bpp / 8) * cur_vmi->yres * cur_vmi->ppsl,
-//		cur_vmi->phys_base_ptr, 3);
+	//unumber u;
+//	ulong size = cur_vmi->yres * cur_vmi->ppsl;
+//	if (size % 0x1000) size = (size & ~0xFFF) + 0x1000;
+//	virt_addr = alloc_pages(size / 0x1000, KVIRT_PAGES);
+/*	
+	u.b = 0x10;
+	u.n = virt_addr;
+	putu(&u);
+	putnl();
+	u.n = size;
+	putu(&u);
+	putnl();
+*/	
+//	page_in(cur_vmi->phys_base_ptr, virt_addr, 0x4000, 3);
 }
 
 void vesa_draw(char * rect, int sx, int sy, int w, int h)

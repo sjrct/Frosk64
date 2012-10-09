@@ -15,7 +15,10 @@
 #define PRIVLEDGE_BIT 4
 #define ACCESSED_BIT  0x20
 #define DIRTY_BIT     0x80
-#define NOT_IDENT_BIT 0x200
+
+kern_obj * cur_ws[2] = {
+	NULL, NULL
+};
 
 void init_paging(void)
 {
@@ -40,18 +43,17 @@ static ulong check_table(ulong baddr, ulong parent, uint shf, uint fl)
 	ulong eaddr = get_entry_addr(baddr, parent, shf);
 	ulong r = ATQ(eaddr);
 
-	if (r & NOT_IDENT_BIT) {
-		page_to_kpt0_0(r);
-		r = KSPACE_LOC;
-	}
-
 	if (!(r & PRESENT_BIT)) {
-		r = alloc_pages(1, PHYS_PAGES) | fl | NOT_IDENT_BIT;
+		r = alloc_pages(1, PHYS_PAGES) | fl;
+
 		ATQ(eaddr) = r;
 		page_to_kpt0_0(r);
 		
 		for (i = 0; i < 0x1000; i++) ATB(KSPACE_LOC + i) = 0;
 		
+		r = KSPACE_LOC;
+	} else {
+		page_to_kpt0_0(r);
 		r = KSPACE_LOC;
 	}
 		
@@ -61,7 +63,7 @@ static ulong check_table(ulong baddr, ulong parent, uint shf, uint fl)
 static void set_pt_entry(ulong addr, ulong val, ulong fl)
 {
 	ulong t;
-		
+
 	if (addr >= KSPACE_LOC) {
 		addr -= NON_CANON_SIZE;
 	}
@@ -71,6 +73,7 @@ static void set_pt_entry(ulong addr, ulong val, ulong fl)
 	t = check_table(addr, t, 21, fl);
 
 	t = get_entry_addr(addr, t, 12);
+
 	ATQ(t) = val;
 }
 
@@ -79,7 +82,7 @@ void page_in(ulong paddr, ulong vaddr, ulong size, uint fl)
 	paddr = (paddr & ~0xfff) | fl;
 	vaddr &= ~0xfff;
 	if (size % 0x1000) size = (size & ~0xfff) + 0x1000;
-	
+
 	while (size > 0) {
 		set_pt_entry(vaddr, paddr, fl);
 		vaddr += 0x1000;
@@ -88,7 +91,7 @@ void page_in(ulong paddr, ulong vaddr, ulong size, uint fl)
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 kern_obj * alloc_ws(void)
 {
@@ -122,7 +125,6 @@ void add_pgs_to_ws(kern_obj * o, ulong vbase, ulong pbase, uint size, ushort fl)
 
 void swap_ws(kern_obj * ws, int wsi)
 {
-	static kern_obj * cur_ws[2];
 	kern_obj * old;
 	uint i;
 	
@@ -136,12 +138,9 @@ void swap_ws(kern_obj * ws, int wsi)
 		}
 		old = old->u.ws.next;
 	}
-		
+
 	while (ws != NULL) {
-		for (i = 0; i < ws->u.ws.size; i += 0x1000) {
-			set_pt_entry(ws->u.ws.vbase + i, (ws->u.ws.pbase + i) | ws->u.ws.flags, ws->u.ws.flags);
-			INVLPG(ws->u.ws.vbase + i);
-		}
+		page_in(ws->u.ws.pbase, ws->u.ws.vbase, ws->u.ws.size, ws->u.ws.flags);		
 		ws = ws->u.ws.next;
 	}
 }
