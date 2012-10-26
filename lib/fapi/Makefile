@@ -8,7 +8,7 @@ SHELL   = /bin/sh
 
 TARGET  = fapi.a
 
-CSRCS_B = stream.c
+CSRCS_B = 
 ASRCS_B = fapi.asm
 
 CC      = gcc

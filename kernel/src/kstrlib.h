@@ -12,5 +12,6 @@
 int strlen(const char *);
 int memcmp(const char *, const char *, uint);
 int strncmp(const char *, const char *, uint);
+void memcpy(char *, const char *, uint);
 
 #endif

@@ -21,10 +21,11 @@ page_fault:
 	push rbp
 	mov rbp, rsp
 	PUSH_CALLER_REGS
+	SWITCH_SEG_SELS
 	pushfq
-	
+
 	mov rcx, [rbp + 8]
-	
+
 	test rcx, 1
 	jz .not_present
 
@@ -32,7 +33,7 @@ page_fault:
 	mov rax, 0xc0debeef
 	jmp $
 	jmp .return
-	
+
 .not_present:
 	and rcx, 4
 	or rcx, 3
@@ -42,7 +43,7 @@ page_fault:
 	mov rsi, 0
 	call alloc_pages
 	push rax
-	
+
 	mov rdi, [cur_ws]
 	mov rsi, cr2
 	and rsi, ~0xfff
@@ -59,6 +60,7 @@ page_fault:
 
 .return:
 	popfq
+	RESTORE_SEG_SELS
 	POP_CALLER_REGS
 	pop rbp
 	add rsp, 8

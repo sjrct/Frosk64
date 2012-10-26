@@ -20,7 +20,7 @@
 #define BIT_MASK     8
 //#include <cmn/io.h>
 video_mode_info * cur_vmi = (video_mode_info*)VM_INFO_LOC;
-static ulong virt_addr = 0;
+//static ulong virt_addr = 0;
 
 void init_vesa(void)
 {

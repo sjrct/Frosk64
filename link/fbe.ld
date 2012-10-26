@@ -5,11 +5,14 @@
 */
 
 OUTPUT_FORMAT(binary)
-ENTRY(main)
+
+EXTERN(_start)
+ENTRY(_start)
 
 SECTIONS
 {
 	. = 0x100000 - 0x10;
+	
 	.fbehdr :
 	{
 		LONG(0xFBE0FBE0)
@@ -36,7 +39,7 @@ SECTIONS
 		* (.bss COMMON)
 	}
 
-	_heap_offset = . - 0x100000;
+	_heap_loc = .;
 
 	/DISCARD/ :
 	{

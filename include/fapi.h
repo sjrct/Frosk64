@@ -23,6 +23,13 @@ typedef long handle_t;
 #define fs_read(X, Y, Z, T) _syscall4_(X, (long)(Y), Z, T, 4)
 #define fs_get_size(X)      _syscall1_(X, 5)
 #define gr_draw(B,X,Y,W,H)  _syscall5_((long)(B), X, Y, W, H, 6)
-#define gr_get_info()       _syscall1_(7)
+#define gr_get_info()       _syscall0_(7)
+#define send(I,P,B,S)       _syscall4_(I, P, (long)(B), S, 8)
+#define poll(P)             _syscall1_(P, 9)
+#define recieve(I,P,B,S)    _syscall4_(I, P, (long)(B), S, 10)
+#define reg_wsys()          _syscall0_(11)
+#define get_wsys()          _syscall0_(12)
+#define unreg_wsys()        _syscall0_(13)
+#define get_current_proc()  _syscall0_(14)
 
 #endif

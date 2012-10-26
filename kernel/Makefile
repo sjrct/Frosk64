@@ -10,9 +10,9 @@ TARGET  = kernel.bin
 
 CSRC_1  = kmain.c interrupt.c exceptions.c kernobj.c pagemgr.c paging.c \
           cga_text.c process.c ata.c keyboard.c fs.c kstrlib.c pci.c driver.c \
-          ehci.c fbe.c vesa.c graphics.c
+          ehci.c fbe.c vesa.c graphics.c ports.c wsysreg.c
 ASRC_1  = exceptions.asm irq.asm paging.asm scheduler.asm keyboard.asm \
-          syscall.asm lock.asm
+          syscall.asm lock.asm tss.asm
 
 CC      = gcc
 

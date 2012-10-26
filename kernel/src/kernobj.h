@@ -17,6 +17,8 @@ enum {
 	KOBJ_THREAD,
 	KOBJ_THREAD_SUB,
 	KOBJ_FSH_META,
+	KOBJ_PORT_INDEX,
+	KOBJ_PORT_DATA,
 };
 
 #pragma pack(push, 1)
@@ -77,6 +79,22 @@ typedef struct kern_obj {
 			ulong addr;
 			struct kern_obj * next;
 		} fshm;
+		
+		struct {
+			char pack[3];
+			int port;
+			struct kern_obj * to;
+			struct kern_obj * data;
+			struct kern_obj * next;
+		} porti;
+		
+		struct {
+			char pack[3];
+			uint off;
+			ulong size;
+			char * addr;
+			struct kern_obj * from;
+		} portd;
 	} u;
 } kern_obj;
 #pragma pack(pop)

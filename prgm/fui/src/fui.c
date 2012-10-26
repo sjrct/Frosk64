@@ -10,6 +10,9 @@ int main()
 {
 	int x, y;
 	static unsigned char buf[100][100][3];
+	
+	reg_wsys();
+	while (!poll(0));
 
 	for (y = 0; y < 100; y++) {
 		for (x = 0; x < 100; x++) {
@@ -31,6 +34,5 @@ int main()
 
 	gr_draw(buf, 120, 20, 100, 100);
 
-	while (1);
 	return 0;
 }

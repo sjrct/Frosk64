@@ -14,7 +14,7 @@ ulong read_file(const char *, uchar **);
 int main()
 {
 	uchar * buf, * start;
-	
+
 	if (!read_file("/sys/prgm/start/run_prgms.lst", &buf)) {
 		driver_call(3, 3, "run_prgms.lst not found.");
 		while (1);
@@ -42,10 +42,14 @@ int main()
 			while (isspace(*buf)) buf++;
 			start = buf;
 		}
+		
 		buf++;
 	}
+	
+	while(!get_wsys());
+	send(get_wsys(), 0, &buf, 4);
+	while(1);
 
-	while (1);
 	return 0;
 }
 
@@ -53,8 +57,7 @@ ulong read_file(const char * fn, uchar ** buf)
 {
 	ulong bl, sz;
 	handle_t h;
-	
-	
+
 	h = fs_aquire(fn, 0, 1);
 	if (h == 0) return 0;
 	

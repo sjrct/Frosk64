@@ -9,6 +9,14 @@
 
 [section .text]
 
+global getlock
+getlock:
+	call trylock
+	test rax, rax
+	jz getlock
+	ret
+
+
 global trylock
 trylock:
 	xor rax, rax

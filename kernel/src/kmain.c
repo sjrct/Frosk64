@@ -14,27 +14,22 @@
 #include "fbe.h"
 #include "fs.h"
 #include "driver.h"
-#include "ata.h"
-#include "ehci.h"
 #include "syscall.h"
+#include "tss.h"
 
 #include "cga_text.h"
 #include "vesa.h"
 
 #define START_PRGM_MAX_SIZE 0x1000
 
+static void init_bss(void);
+
 // defined in linker script
 extern char * const _bss_addr;
 extern const uint _bss_size;
 
-static void init_bss(void);
-
 void __attribute__ ((noreturn)) kmain()
 {
-//	unumber num;
-//	pixel p;
-//	unsigned r, g, b;
-
 	uchar buffer[START_PRGM_MAX_SIZE];
 	handle_t hndl;
 
@@ -51,8 +46,8 @@ void __attribute__ ((noreturn)) kmain()
 	init_processes();
 	init_syscalls();
 	init_idt();
-//	init_tss();
-	
+	init_tss();
+
 	init_graphics();
 
 	hndl = fs_aquire("/sys/prgm/start/start", 0, 1);
