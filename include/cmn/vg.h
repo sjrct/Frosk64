@@ -10,11 +10,6 @@
 #include <cmn/utypes.h>
 
 typedef struct {
-	ushort x, y;
-	uint c;
-} pixel;
-
-typedef struct {
 	int resx, resy;
 	int bpp, bpsl;
 } gr_info;

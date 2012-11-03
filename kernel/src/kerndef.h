@@ -48,7 +48,7 @@ define( KSPACE_LOC,   0xFFFF800000000000 )
 define( KOBJ_PG0_LOC, 0xFFFF80000000C000 )
 
 define( USPACE_BOT,   0x100000 )
-define( USPACE_TOP,   0x200000 )
+define( USPACE_TOP,   0x800000000000 )
 
 define( NON_CANON_SIZE, 0xFFFF000000000000 )
 
@@ -62,8 +62,8 @@ define( TSS_SEL,   0x28 )
 define( CODE_DATA_WS, 0 )
 define( STACK_WS,     1 )
 
+define( IRQ0, 0x20 )
 define( SYSCALL_INT, 0x40 )
-define( IRQ0, 0x80 )
 
 define( KEY_BUF_MAX_SIZE, 0x200 )
 

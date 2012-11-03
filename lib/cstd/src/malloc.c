@@ -12,21 +12,21 @@ typedef struct header {
 	struct header * next;
 } header;
 
-extern void * const _heap_offset;
+extern header _heap_loc;
 static header * hdr = NULL;
 
 void * malloc(size_t sz)
 {
 	static bool first = true;
 	header * cur, * prv;
-	
+
 	if (first) {
-		hdr = _heap_offset;
-		hdr->size = 0x10000; // FIXME size fudged for now
+		hdr = &_heap_loc;
+		hdr->size = 0x10000; // FIXME size fudged for now		
 		hdr->next = hdr;
 		first = false;
 	}
-	
+
 	if (hdr == NULL) return NULL;
 	
 	if (sz % sizeof(header) != 0) {

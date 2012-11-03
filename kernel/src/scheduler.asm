@@ -11,13 +11,19 @@
 
 %include "kerndef.h"
 
+extern enable_irq
 extern swap_ws
+extern getlock
+extern unlock
 
+extern procthrd_lock
 extern head_process
 extern head_thread
 
 global start_timer
 start_timer:
+	mov rdi, 0	; timer irq number
+	call enable_irq
 	mov al, 0x30	; interrupt on terminal count mode
 	out 0x43, al
 	mov al, 1
@@ -30,28 +36,21 @@ start_timer:
 global context_switch
 context_switch:
 	PUSH_CALLER_REGS
+	SWITCH_SEG_SELS
 	push rbx
 	
-;extern putu
-;extern putnl
-;	mov rax, rsp
-;	sub rsp, 16
-;;	mov [rsp], rax
-;	mov qword [rsp + 8], 0x10
-;	call putnl
-;	mov rdi, rsp
-;	call putu
-;	add rsp, 16
+	test byte [procthrd_lock], 2
+	jnz .return_early
 
 	mov rbx, [head_thread]
 	mov rax, rbx
 	test rbx, rbx
 	jz .return_early
-
+	
 .search_loop:
 	cmp byte [rbx + 1], 0 ; is thread ready?
 	je .break
-	
+
 	mov rbx, [rbx + 24]
 	cmp rax, rbx ; no ready threads found?
 	je .return_early
@@ -60,7 +59,7 @@ context_switch:
 
 	; set thread as running
 	mov byte [rbx + 1], 1
-	
+
 	; set head_thread to next thread
 	mov rax, [rbx + 24]
 	mov [head_thread], rax
@@ -80,12 +79,10 @@ context_switch:
 
 	; push iretq data	
 	mov rax, rsp
-	push qword KERNEL_DS	; TODO fix for change in priv level
+	push qword KERNEL_DS
 	push rax
 	pushfq
-	xor rax, rax
-	mov ax, cs
-	push rax
+	push qword KERNEL_CS
 	mov rax, .return_here
 	push rax
 
@@ -99,13 +96,13 @@ context_switch:
 .ct_null:
 	mov [current_thread], rbx
 
-	; setup temporary stack and swap in stack
+	; swap in stack
 	mov rsp, STACK_LOC
 	mov rdi, [rbx + 8]
 	mov rdi, [rdi + 16]
 	mov rsi, STACK_WS
 	call swap_ws
-	
+
 	; load the new rsp
 	mov rax, [rbx + 8]
 	mov rsp, [rax + 24]
@@ -131,6 +128,7 @@ context_switch:
 
 .return:
 	pop rbx
+	RESTORE_SEG_SELS
 	POP_CALLER_REGS
 	iretq
 
@@ -145,4 +143,5 @@ context_switch:
 
 [section .data]
 
+global current_thread
 current_thread: dq 0

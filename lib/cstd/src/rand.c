@@ -16,7 +16,7 @@ void srand(unsigned s)
 // seems to work well with not repeating and not favoriting
 // the algorithim (compliments to myself) is basically:
 //  -Xor by constant
-//  -rotate by 1 more (or 0 if first, or last = 32) than last value rotated by
+//  -rotate by 1 more (or 0 if first, or if last = 32) than last value rotated by
 //  -add some constant
 unsigned rand(void)
 {

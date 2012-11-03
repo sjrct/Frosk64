@@ -15,7 +15,6 @@
 int main(int argc, char ** argv)
 {
 	driver_call(3, 3, "Hello");
-	while (1);
 
 /*	int i, interactive = 1;
 	char buf[BUF_SZ];

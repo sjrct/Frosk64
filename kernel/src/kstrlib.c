@@ -31,3 +31,10 @@ int strncmp(const char * s1, const char * s2, uint sz)
 	return 0;
 }
 
+void memcpy(char * d, const char * s, uint sz)
+{
+	uint i;
+	for (i = 0; i < sz; i++) {
+		d[i] = s[i];
+	}
+}

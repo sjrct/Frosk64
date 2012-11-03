@@ -55,7 +55,7 @@ void init_page_mgr(void)
 			}
 		}
 	}
-	
+
 	head[KVIRT_PAGES] = alloc_kobj();
 	head[KVIRT_PAGES]->type = KOBJ_PAGES;
 	head[KVIRT_PAGES]->u.pmem.type = USABLE;
@@ -68,8 +68,7 @@ ulong alloc_pages(uint sz, page_type ty)
 {
 	ulong addr;
 	kern_obj * cur = head[ty];
-	kern_obj * prev = NULL;;
-
+	kern_obj * prev = NULL;
 	sz *= 0x1000;
 
 	while (cur != NULL) {
@@ -81,8 +80,10 @@ ulong alloc_pages(uint sz, page_type ty)
 				free_kobj(cur);
 				return addr;
 			} else {
+				addr = cur->u.pmem.addr;
 				cur->u.pmem.size = cur->u.pmem.size - sz;
-				return cur->u.pmem.addr + cur->u.pmem.size;
+				cur->u.pmem.addr += sz;
+				return addr;
 			}
 		}
 

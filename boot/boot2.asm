@@ -309,9 +309,9 @@ protected_code_start:
 	mov dword [KPDPT_LOC + 4], 0
 	mov dword [KPDT0_LOC + 4], 0
 
-	mov dword [PML4T_LOC], TPDPT_LOC | 3
-	mov dword [TPDPT_LOC], TPDT0_LOC | 3
-	mov dword [TPDT0_LOC], TPT0_0_LOC | 3
+	mov dword [PML4T_LOC], TPDPT_LOC | 7
+	mov dword [TPDPT_LOC], TPDT0_LOC | 7
+	mov dword [TPDT0_LOC], TPT0_0_LOC | 7
 	mov dword [PML4T_LOC + 4], 0
 	mov dword [TPDPT_LOC + 4], 0
 	mov dword [TPDT0_LOC + 4], 0
@@ -429,16 +429,11 @@ gdt64:
 	dw 0x0068
 	dw TSS_SEG_LOC & 0xFFFF
 	db (TSS_SEG_LOC >> 16) & 0xFF
-	db 0x40
 	db 0x89
+	db 0x10
 	db (TSS_SEG_LOC >> 24) & 0xFF
-
-	dw 0x0068
-	dw TSS_SEG_LOC & 0xFFFF
-	db (TSS_SEG_LOC >> 16) & 0xFF
-	db 0x40
-	db 0x89
-	db (TSS_SEG_LOC >> 24) & 0xFF
+	dd (TSS_SEG_LOC >> 32) & 0xfFFFfFFF
+	dd 0
 .end:
 
 times 0x1000 - ($ - $$) db 0
