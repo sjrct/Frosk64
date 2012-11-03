@@ -16,6 +16,16 @@ inline static bool isleapyear(i)
 	return true;
 }
 
+/*time_t time(time_t * out)
+{
+	time_t t;
+	
+	
+	
+	if (out != NULL) *out = t;
+	return t;
+}
+*/
 // unlike the standard, gets clocks elapsed since startup and not since the
 //   begining of the program's execution
 clock_t clock(void)

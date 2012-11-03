@@ -44,6 +44,6 @@ typedef struct {
 void init_vesa(void);
 void vesa_draw(char *, int, int, int, int);
 gr_info * vesa_get_info(void);
-void plot(pixel *);
+//void plot(pixel *);
 
 #endif

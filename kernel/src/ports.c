@@ -18,7 +18,7 @@ void send(kern_obj * to, int port, const char * buf, ulong size)
 	kern_obj * c = head;
 	kern_obj * l = NULL;
 	kern_obj * from, * d;
-	
+
 	if (current_thread == NULL) return;
 	from = current_thread->u.thrd.proc;
 	
@@ -33,7 +33,7 @@ void send(kern_obj * to, int port, const char * buf, ulong size)
 	}
 	
 	if (l != NULL) {
-		d = c->u.porti.data;
+		d = l->u.porti.data;
 		n = d->u.portd.size + d->u.portd.off;
 		
 		if (0x1000 - 0x1000 % n >= size) {
@@ -69,7 +69,7 @@ kern_obj * poll(int port)
 {
 	kern_obj * c = head;
 	kern_obj * to;
-	
+
 	if (current_thread == NULL) return NULL;
 	to = current_thread->u.thrd.proc;
 	
@@ -84,7 +84,7 @@ kern_obj * poll(int port)
 	return NULL;
 }
 
-int recieve(kern_obj * from, int port, char * buf, ulong size)
+int receive(kern_obj * from, int port, char * buf, ulong size)
 {
 	kern_obj * c = head;
 	kern_obj * to, * d;

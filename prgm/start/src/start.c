@@ -34,22 +34,18 @@ int main()
 		if (isspace(*buf)) {
 			*buf ='\0';
 			run_prgm((char*)start);
-			
+
 			do {
 				buf++;
 			} while (isspace(*buf));
 			
-			while (isspace(*buf)) buf++;
 			start = buf;
+			continue;
 		}
 		
 		buf++;
 	}
 	
-	while(!get_wsys());
-	send(get_wsys(), 0, &buf, 4);
-	while(1);
-
 	return 0;
 }
 
@@ -83,4 +79,6 @@ void run_prgm(const char * fn)
 
 	// TODO adjust parent and priority
 	exec_fbe(buf, sz, NULL, 0, 0x80);
+	
+//	free(buf);
 }

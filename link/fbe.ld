@@ -1,5 +1,5 @@
 /*
-* kernel.ld
+* fbe.ld
 *
 * written by sjrct
 */

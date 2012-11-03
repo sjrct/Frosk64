@@ -14,11 +14,12 @@ extern gr_draw
 extern gr_get_info
 extern send
 extern poll
-extern recieve
+extern receive
 extern reg_wsys
 extern get_wsys
 extern unreg_wsys
 extern get_current_proc
+extern get_mouse_pos
 
 global syscalls_ls
 syscalls_ls:
@@ -32,10 +33,11 @@ syscalls_ls:
 	dq gr_get_info
 	dq send
 	dq poll
-	dq recieve ; 10
+	dq receive ; 10
 	dq reg_wsys
 	dq get_wsys
 	dq unreg_wsys
 	dq get_current_proc
+	dq get_mouse_pos ; 15
 
 syscalls_count: equ ($ - syscalls_ls) / 8

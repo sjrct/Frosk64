@@ -35,25 +35,39 @@ page_fault:
 	jmp .return
 
 .not_present:
-	and rcx, 4
-	or rcx, 3
-	push rcx
+;	and rcx, 4
+;	or rcx, 3
+;	push rcx
 
+	; allocate new page
 	mov rdi, 1
 	mov rsi, 0
 	call alloc_pages
 	push rax
 
-	mov rdi, [cur_ws]
+	; add page to current applicable workspace
+	;add_pgs_to_ws(kern_obj * o, ulong vbase, ulong pbase, uint size, ushort fl)
 	mov rsi, cr2
 	and rsi, ~0xfff
+	
+	mov r11, USPACE_TOP / 2
+	cmp rsi, r11
+	jbe .code
+	mov rdi, [cur_ws + STACK_WS * 8]
+	jmp .stack
+.code:
+	mov rdi, [cur_ws + CODE_DATA_WS * 8]
+.stack:
+	
 	mov rdx, rax
 	mov rcx, 0x1000
-	mov r8, CODE_DATA_WS
+	mov r8, 7
 	call add_pgs_to_ws
 
+	; page in the new page
 	pop rdi
-	pop rcx
+;	pop rcx
+	mov rcx, 7
 	mov rsi, cr2
 	mov rdx, 0x1000
 	call page_in

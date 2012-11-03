@@ -9,8 +9,8 @@ SHELL      = /bin/sh
 TARGET     = frosk.img
 
 UTILS_B    = f301_builder
-PRGMS_B    = start frash fui
-LIBS_B     = cstd fapi
+PRGMS_B    = start frash fui rusk
+LIBS_B     = cstd fapi ykw rusklib
 
 MAKE       := $(MAKE) --no-print-directory
 

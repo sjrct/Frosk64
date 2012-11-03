@@ -8,8 +8,8 @@ d:[name = /, read = owner, write = owner, contents = {
 			f:[name = fui, actual = prgm/fui/fui]
 		}]
 		
-		d:[name = frash, contents = {
-			f:[name = frash, actual = prgm/frash/frash]
+		d:[name = rusk, contents = {
+			f:[name = rusk, actual = prgm/rusk/rusk]
 		}]
 	}]
 

@@ -78,7 +78,7 @@ gr_info * vesa_get_info(void)
 	inf.bpsl = cur_vmi->ppsl;
 	return &inf;
 }
-
+/*
 void plot(pixel * p)
 {
 	ulong addr;
@@ -100,4 +100,4 @@ void plot(pixel * p)
 	ATB(KSPACE_LOC + (addr % 0x1000) + 0) = p->c;
 	ATB(KSPACE_LOC + (addr % 0x1000) + 1) = p->c >> 8;
 	ATB(KSPACE_LOC + (addr % 0x1000) + 2) = p->c >> 16;
-}
+}*/

@@ -21,5 +21,4 @@ _start:
 	call main
 	
 	; TODO: system call to end_thread
-mov rax, 0xedd1ed
 	jmp $

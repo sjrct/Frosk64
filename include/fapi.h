@@ -15,6 +15,7 @@ long _syscall4_(long, long, long, long, long);
 long _syscall5_(long, long, long, long, long, long);
 
 typedef long handle_t;
+typedef long pid_t;
 
 #define driver_call(X,Y,Z)  _syscall3_(X, Y, (long)(Z), 0)
 #define exec_fbe(X,Y,Z,T,V) _syscall5_((long)(X), Y, (long)(Z), T, V, 1)
@@ -26,10 +27,11 @@ typedef long handle_t;
 #define gr_get_info()       _syscall0_(7)
 #define send(I,P,B,S)       _syscall4_(I, P, (long)(B), S, 8)
 #define poll(P)             _syscall1_(P, 9)
-#define recieve(I,P,B,S)    _syscall4_(I, P, (long)(B), S, 10)
+#define receive(I,P,B,S)    _syscall4_(I, P, (long)(B), S, 10)
 #define reg_wsys()          _syscall0_(11)
 #define get_wsys()          _syscall0_(12)
 #define unreg_wsys()        _syscall0_(13)
 #define get_current_proc()  _syscall0_(14)
+#define get_mouse_pos(X,Y)  _syscall2_((ulong)(X), (ulong)(Y), 15)
 
 #endif
