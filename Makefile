@@ -10,7 +10,7 @@ TARGET     = frosk.img
 
 UTILS_B    = f301_builder
 PRGMS_B    = start frash fui rusk
-LIBS_B     = cstd fapi ykw rusklib
+LIBS_B     = cstd fapi ykw events shiny
 
 MAKE       := $(MAKE) --no-print-directory
 

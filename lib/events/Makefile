@@ -1,12 +1,12 @@
 #
-# Makefile for rusklib
+# Makefile for events
 #
 # written by sjrct
 #
 
 SHELL   = /bin/sh
 
-TARGET  = rusklib.a
+TARGET  = events.a
 
 CSRCS_B = events.c
 ASRCS_B = 
