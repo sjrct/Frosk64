@@ -1,6 +1,6 @@
 #define expanse_handle long
 
-#define EXPANSE_SYSTEM_PORT 3141
+#define ES_COMM_PORT 0x10
 
 // Expanse Manager
 enum {
