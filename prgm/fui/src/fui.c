@@ -30,17 +30,7 @@ int main()
 	
 	set_shiny_buffer(SHINY_BUFFER(buffer), buf);
 	container_add_thingy(SHINY_CONTAINER(expanse), buffer);
-
-/*	for (y = 0; y < 100; y++) {
-		for (x = 0; x < 100; x++) {
-			buf[x][y][0] = x % 255;
-			buf[x][y][1] = (100 - y) % 255;
-			buf[x][y][2] = (x + (100 - y)) % 255;
-		}
-	}*/
-
-//	gr_draw(buf, 120, 20, 100, 100);
-
+	
 	shiny_main_loop();
 	return 0;
 }

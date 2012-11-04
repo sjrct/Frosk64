@@ -5,6 +5,8 @@
 //
 
 #include <stdlib.h>
+#include <stdbool.h>
+#include <expanse.h>
 #include <bufferutils.h>
 #include "rusk_intrn.h"
 
@@ -12,6 +14,8 @@ typedef struct full_expanse {
 	expanse exp;
 	pixel_buffer expanse_buffer;
 	pid_t pid;
+	char * lbuf;
+	bool dirty_lbuf;
 	expanse_handle handle;
 	struct full_expanse * next;
 } full_expanse;
@@ -21,18 +25,19 @@ static full_expanse * expanses;
 void try_draw() {
 	expanse * exp;
 	full_expanse * itr;
-	char * lbuf;
 
 	static int counter = 0;
 	if (counter++ < 100) return;
 	counter = 0;
-	
-	if (expanses != NULL) {
-		for(itr = expanses; itr->next != NULL; itr = itr->next) {
-			exp = &itr->exp;
-			lbuf = linear_buffer(itr->expanse_buffer);
-			gr_draw(lbuf, exp->x, exp->y, exp->width, exp->height);
+
+	for(itr = expanses; itr != NULL; itr = itr->next) {
+		exp = &itr->exp;
+		if (itr->dirty_lbuf) {
+			free(itr->lbuf);
+			itr->lbuf = linear_buffer(itr->expanse_buffer);
+			itr->dirty_lbuf = false;
 		}
+		gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
 	}
 }
 
@@ -41,10 +46,9 @@ int main() {
 
 	while(1) {
 		serve();
-	
 		//poll_keyb();
 		//poll_mouse();
-		//try_draw();
+		try_draw();
 	}
 }
 
@@ -56,6 +60,7 @@ int main() {
 expanse_handle add_expanse(const api_expanse* e) {
 	expanse exp;
 	pixel pxl = { 0, 128, 0 };
+
 	full_expanse* itr = expanses;
 	full_expanse* new_e = malloc(sizeof(full_expanse));
 
@@ -71,6 +76,8 @@ expanse_handle add_expanse(const api_expanse* e) {
 	new_e->next = NULL;
 	new_e->exp = exp;
 	new_e->expanse_buffer = create_buffer(e->width, e->height, pxl);
+	new_e->dirty_lbuf = true;
+	new_e->lbuf = NULL;
 	
 	if (itr == NULL) {
 		expanses = new_e;
@@ -79,7 +86,6 @@ expanse_handle add_expanse(const api_expanse* e) {
 			itr = itr->next;
 		}
 		
-		new_e->next = itr->next;
 		itr->next = new_e;
 	}
 	

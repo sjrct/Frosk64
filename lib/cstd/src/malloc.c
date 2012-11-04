@@ -22,7 +22,7 @@ void * malloc(size_t sz)
 
 	if (first) {
 		hdr = &_heap_loc;
-		hdr->size = 0x10000; // FIXME size fudged for now		
+		hdr->size = 0x100000; // FIXME size fudged for now		
 		hdr->next = hdr;
 		first = false;
 	}
@@ -46,7 +46,7 @@ void * malloc(size_t sz)
 				}
 				return cur + 1;
 			} else {
-				hdr = (header*)((char*)cur + sz);
+				hdr = (header*)((char*)(cur + 1) + sz);
 				hdr->size = cur->size - sz - sizeof(header);
 				cur->size = sz;
 				
@@ -100,25 +100,34 @@ void * realloc(void * old, size_t sz)
 void free(void * ptr)
 {
 	header * cur, * prv;
-	header * ph = (header*)ptr - 1;
+	header * ph;
+	
+	if (ptr == NULL) return;
+	
+	ph = (header*)ptr - 1;
 	
 	if (hdr == NULL) {
 		hdr = ph;
-		hdr->next = NULL;
+		hdr->next = hdr;
 	} else {
 		prv = hdr;
 		cur = hdr->next;
 		
 		do {
-			if ((char*)cur + cur->size + sizeof(header) == (char*)ph) {
-				cur->size += ph->size;
+			if ((char*)(cur + 1) + cur->size == (char*)ptr) {
+				cur->size += ph->size + sizeof(header);
 				return;
 			}
 			
-			if ((char*)ph + ((header*)ph)->size + sizeof(header) == (char*)cur) {
-				ph->size += cur->size;
-				if (prv == cur) hdr = cur;
-				else prv->next = ph;
+			if ((char*)ptr + ph->size == (char*)cur) {
+				ph->size += cur->size + sizeof(header);
+				if (prv == cur) {
+					hdr = ph;
+					hdr->next = hdr;
+				} else {
+					prv->next = ph;
+					ph->next = cur->next;
+				}
 				return;
 			}
 			

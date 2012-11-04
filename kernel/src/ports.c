@@ -74,7 +74,8 @@ kern_obj * poll(int port)
 	to = current_thread->u.thrd.proc;
 	
 	while (c != NULL) {
-		if (c->u.porti.port == port && c->u.porti.to == to) {
+		if (c->u.porti.port == port && c->u.porti.to == to
+			&& c->u.porti.data->u.portd.size != 0) {
 			return c->u.porti.data->u.portd.from;
 		}
 		
