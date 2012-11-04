@@ -5,41 +5,39 @@
 //
 
 #include <stdlib.h>
-#include <rusk.h>
 #include <bufferutils.h>
 #include "rusk_intrn.h"
 
-typedef struct full_window {
-	window win;
-	pixel_buffer window_buffer;
+typedef struct full_expanse {
+	expanse exp;
+	pixel_buffer expanse_buffer;
 	pid_t pid;
-	window_handle handle;
-	struct full_window * next;
-} full_window;
+	expanse_handle handle;
+	struct full_expanse * next;
+} full_expanse;
 
-static full_window * windows;
+static full_expanse * expanses;
 
 void try_draw() {
-	window * win;
-	full_window * itr;
+	expanse * exp;
+	full_expanse * itr;
 	char * lbuf;
 
 	static int counter = 0;
 	if (counter++ < 100) return;
 	counter = 0;
 	
-	if (windows != NULL) {
-		for(itr = windows; itr->next != NULL; itr = itr->next) {
-			// TODO change either this or gr draw's parameters
-			win = &itr->win;
-			lbuf = linear_buffer(itr->window_buffer);
-			gr_draw(lbuf, win->x, win->y, win->width, win->height);
+	if (expanses != NULL) {
+		for(itr = expanses; itr->next != NULL; itr = itr->next) {
+			exp = &itr->exp;
+			lbuf = linear_buffer(itr->expanse_buffer);
+			gr_draw(lbuf, exp->x, exp->y, exp->width, exp->height);
 		}
 	}
 }
 
 int main() {
-	reg_wsys();
+	reg_esys();
 
 	while(1) {
 		serve();
@@ -50,63 +48,62 @@ int main() {
 	}
 }
 
-/*
-void register_wm(pid_t window_manager, int port) {
-	wm = window_manager;
-	wm_port = port;
+/*void register_em(pid_t expanse_manager, int port) {
+	em = expanse_manager;
+	em_port = port;
 }*/
 
-window_handle add_window(const api_window* w) {
-	window win;
+expanse_handle add_expanse(const api_expanse* e) {
+	expanse exp;
 	pixel pxl = { 0, 128, 0 };
-	full_window* itr = windows;
-	full_window* new_w = malloc(sizeof(full_window));
+	full_expanse* itr = expanses;
+	full_expanse* new_e = malloc(sizeof(full_expanse));
 
-	win.x = 0;
-	win.y = 0;
-	win.sub_offset_x = 0;
-	win.sub_offset_y = 0;
-	win.width = w->width;
-	win.height = w->height;
+	exp.x = 0;
+	exp.y = 0;
+	exp.sub_offset_x = 0;
+	exp.sub_offset_y = 0;
+	exp.width = e->width;
+	exp.height = e->height;
 	
-	win.api_win = *w;
+	exp.api_exp = *e;
 	
-	new_w->next = NULL;
-	new_w->win = win;
-	new_w->window_buffer = create_buffer(w->width, w->height, pxl);
+	new_e->next = NULL;
+	new_e->exp = exp;
+	new_e->expanse_buffer = create_buffer(e->width, e->height, pxl);
 	
 	if (itr == NULL) {
-		windows = new_w;
+		expanses = new_e;
 	} else {
 		while (itr->next != NULL) {
 			itr = itr->next;
 		}
 		
-		new_w->next = itr->next;
-		itr->next = new_w;
+		new_e->next = itr->next;
+		itr->next = new_e;
 	}
 	
-	new_w->handle = (window_handle)w;	
-	return (window_handle)w;
+	new_e->handle = (expanse_handle)e;
+	return new_e->handle;
 }
 
-void remove_window(window_handle w) {
-	full_window* itr = windows;
-	full_window* new_next;
+void remove_expanse(expanse_handle e) {
+	full_expanse* itr = expanses;
+	full_expanse* new_next;
 	
-	if (windows == NULL) {
+	if (expanses == NULL) {
 		return;
 	}
 	
 	if (itr->next == NULL) {
-		if (itr->handle == w) {
-			free(windows);
-			windows = NULL;
+		if (itr->handle == e) {
+			free(expanses);
+			expanses = NULL;
 		} // else error?
 		return;
 	}
 	
-	while (itr->next != NULL && itr->next->handle != w) {
+	while (itr->next != NULL && itr->next->handle != e) {
 		itr = itr->next;
 	}
 	
@@ -117,15 +114,15 @@ void remove_window(window_handle w) {
 	}
 }
 
-/*void bring_window_to_front(window* w) {
-	full_window* itr = windows;
-	full_window* first;
+void bring_expanse_to_front(expanse_handle e) {
+	full_expanse* itr = expanses;
+	full_expanse* first;
 	
 	if(itr == NULL || itr->next == NULL) {
 		return;
 	}
 	
-	while(itr->next != NULL && itr->next->w != w) {
+	while(itr->next != NULL && itr->next->handle != e) {
 		itr = itr->next;
 	}
 	
@@ -140,4 +137,4 @@ void remove_window(window_handle w) {
 	
 		first->next = NULL;
 	}
-}*/
+}

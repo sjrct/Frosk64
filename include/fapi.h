@@ -28,9 +28,9 @@ typedef long pid_t;
 #define send(I,P,B,S)       _syscall4_(I, P, (long)(B), S, 8)
 #define poll(P)             _syscall1_(P, 9)
 #define receive(I,P,B,S)    _syscall4_(I, P, (long)(B), S, 10)
-#define reg_wsys()          _syscall0_(11)
-#define get_wsys()          _syscall0_(12)
-#define unreg_wsys()        _syscall0_(13)
+#define reg_esys()          _syscall0_(11)
+#define get_esys()          _syscall0_(12)
+#define unreg_esys()        _syscall0_(13)
 #define get_current_proc()  _syscall0_(14)
 #define get_mouse_pos(X,Y)  _syscall2_((ulong)(X), (ulong)(Y), 15)
 

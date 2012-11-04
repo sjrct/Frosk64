@@ -1,24 +1,34 @@
-struct container_list {
-	shiny_thingy * thingy;
-	container_list * next;
-}
+//
+// shiny_container.c
+//
+// written by naitsirhc
+//
 
-typedef struct {
-	container_list* things;
-	color bg_color;
+#include <stdlib.h>
+#include <shiny/shiny.h>
+#include <shiny/shiny_container.h>
+
+typedef struct container_list {
+	shiny_thingy * thingy;
+	struct container_list * next;
+} container_list;
+
+struct shiny_container{
+	container_list * things;
+//	color bg_color;
 //	int border_width;
-} container_thingy;
+};
 
 
 shiny_thingy * create_container(int width, int height) {
 	shiny_thingy * thingy = malloc(sizeof(shiny_thingy));
-	SHINY_CONTAINER(thingy) = malloc(sizeof(container_thingy));
-	thingy.size.width = width;
-	thingy.size.height = height;
+	SHINY_CONTAINER(thingy) = malloc(sizeof(shiny_container));
+	thingy->size.width = width;
+	thingy->size.height = height;
 	return thingy;
 }
 
-void add_thingy(container_thingy * container, shiny_thingy * thingy) {
+void add_thingy(shiny_container * container, shiny_thingy * thingy) {
 	container_list * itr;
 	
 	if(container->things != NULL) {
@@ -27,13 +37,13 @@ void add_thingy(container_thingy * container, shiny_thingy * thingy) {
 		itr = itr->next;
 	} else {
 		container->things = malloc(sizeof(container_list));
-		itr = container->things
+		itr = container->things;
 	}
 	
 	itr->thingy = thingy;
 }
 
-void remove_thingy(container_thingy * container, shiny_thingy * thingy) {
+void remove_thingy(shiny_container * container, shiny_thingy * thingy) {
 	container_list * itr = container->things;
 	container_list * found;
 	
@@ -60,21 +70,23 @@ void remove_thingy(container_thingy * container, shiny_thingy * thingy) {
 	}
 }
 
-void draw(container_thingy * container, shiny_loc loc, shiny_size size) {
+void draw_shiny_container(shiny_container * container, shiny_loc loc, shiny_size size) {
 	container_list * itr;
 	
 	// TODO change size
 	
 	// TODO draw border
 	
-	fill_rect(loc->x, loc->y, width, height, bg_color);
+	//fill_rect(loc->x, loc->y, width, height, bg_color);
 	
-	if (itr != NULL) {
+	//TODO straighten out how the drawing is done and how the location is passed
+	
+	if (container->things != NULL) {
 		for (itr = container->things; itr != NULL; itr = itr->next) {
-			itr->thingy.loc = loc;
+			itr->thingy->loc = loc;
 			//TODO change itr->thingy size
-			draw(itr->thingy);
-			loc.x += itr->thingy->size->width;
+			draw(itr->thingy, loc);
+			loc.x += itr->thingy->size.width;
 		}
 	}
 }

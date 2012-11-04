@@ -39,8 +39,8 @@ bool register_em() {
 
 // from handle event?
 void resize_expanse(expanse e, int new_width, int new_height) {
-	e.api_win.width = new_width;
-	e.api_win.height = new_height;
+	e.api_exp.width = new_width;
+	e.api_exp.height = new_height;
 	set_expanse_geometry(&e);
 	update_expanse(e);
 	update_decoration_buffer(e);

@@ -18,6 +18,7 @@ typedef enum event_type{
 } event_type;
 
 typedef struct event {
+	expanse_handle exp_handle;
 	event_type type;
 	int x, y;
 	
@@ -30,7 +31,7 @@ typedef struct event {
 } event;
 
 typedef struct event_list {
-	event e;
+	event event;
 	struct event_list * next;
 } event_list;
 

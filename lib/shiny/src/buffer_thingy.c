@@ -1,3 +1,9 @@
+//
+// buffer_thingy.c
+//
+// written by naitsirhc
+//
+
 #include <bufferutils.h>
 
 typedef struct {

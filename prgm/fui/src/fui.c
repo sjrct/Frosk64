@@ -5,7 +5,7 @@
 //
 
 #include <frosk.h>
-#include <rusk.h>
+#include <expanse.h>
 #include <stdlib.h>
 
 void sendint(pid_t pid, int port, int n)
@@ -15,19 +15,19 @@ void sendint(pid_t pid, int port, int n)
 
 int main()
 {
-	window_handle handle;
-	api_window win;
-	pid_t wsys;
+	expanse_handle handle;
+	api_expanse exp;
+	pid_t esys;
 	
-	while (!(wsys = get_wsys()));
+	while (!(esys = get_esys()));
 
-	sendint(wsys, RUSK_COMM_PORT, RUSK_CREATE_WINDOW);
+	sendint(esys, ES_COMM_PORT, ES_CREATE_EXPANSE);
 	
-	win.width = win.height = 100;
-	win.attributes = 0;
-	send(wsys, RUSK_COMM_PORT, &win, sizeof(api_window));
+	exp.width = exp.height = 100;
+	exp.attributes = 0;
+	send(esys, ES_COMM_PORT, &exp, sizeof(api_expanse));
 
-	while (!receive(wsys, RUSK_COMM_PORT, &handle, sizeof(handle)));
+	while (!receive(esys, ES_COMM_PORT, &handle, sizeof(handle)));
 /*
 	int x, y;
 	static unsigned char buf[100][100][3];
