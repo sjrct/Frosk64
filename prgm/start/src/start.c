@@ -80,5 +80,5 @@ void run_prgm(const char * fn)
 	// TODO adjust parent and priority
 	exec_fbe(buf, sz, NULL, 0, 0x80);
 	
-//	free(buf);
+	free(buf);
 }

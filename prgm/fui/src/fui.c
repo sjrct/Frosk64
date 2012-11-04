@@ -23,7 +23,7 @@ int main()
 
 	sendint(wsys, RUSK_COMM_PORT, RUSK_CREATE_WINDOW);
 	
-	win.width = win.height = 100;
+	win.width = win.height = 400;
 	win.attributes = 0;
 	send(wsys, RUSK_COMM_PORT, &win, sizeof(api_window));
 

@@ -5,6 +5,7 @@
 //
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <rusk.h>
 #include <bufferutils.h>
 #include "rusk_intrn.h"
@@ -14,6 +15,8 @@ typedef struct full_window {
 	pixel_buffer window_buffer;
 	pid_t pid;
 	window_handle handle;
+	char * lbuf;
+	bool dirty_lbuf;
 	struct full_window * next;
 } full_window;
 
@@ -22,19 +25,20 @@ static full_window * windows;
 void try_draw() {
 	window * win;
 	full_window * itr;
-	char * lbuf;
 
 	static int counter = 0;
 	if (counter++ < 100) return;
 	counter = 0;
-	
-	if (windows != NULL) {
-		for(itr = windows; itr->next != NULL; itr = itr->next) {
-			// TODO change either this or gr draw's parameters
-			win = &itr->win;
-			lbuf = linear_buffer(itr->window_buffer);
-			gr_draw(lbuf, win->x, win->y, win->width, win->height);
+
+	for(itr = windows; itr != NULL; itr = itr->next) {
+		// TODO change either this or gr draw's parameters
+		win = &itr->win;
+		if (itr->dirty_lbuf) {
+			free(itr->lbuf);
+			itr->lbuf = linear_buffer(itr->window_buffer);
+			itr->dirty_lbuf = false;
 		}
+		gr_draw(itr->lbuf, win->x, win->y, win->width, win->height);
 	}
 }
 
@@ -43,10 +47,9 @@ int main() {
 
 	while(1) {
 		serve();
-	
 		//poll_keyb();
 		//poll_mouse();
-		//try_draw();
+		try_draw();
 	}
 }
 
@@ -60,8 +63,9 @@ window_handle add_window(const api_window* w) {
 	window win;
 	pixel pxl = { 0, 128, 0 };
 	full_window* itr = windows;
+	//TODO THIS MALLOC IS FAILING!!!
 	full_window* new_w = malloc(sizeof(full_window));
-
+	
 	win.x = 0;
 	win.y = 0;
 	win.sub_offset_x = 0;
@@ -70,19 +74,20 @@ window_handle add_window(const api_window* w) {
 	win.height = w->height;
 	
 	win.api_win = *w;
-	
+
 	new_w->next = NULL;
 	new_w->win = win;
 	new_w->window_buffer = create_buffer(w->width, w->height, pxl);
-	
-	if (itr == NULL) {
+	new_w->dirty_lbuf = true;
+	new_w->lbuf = NULL;
+
+	if (windows == NULL) {
 		windows = new_w;
 	} else {
 		while (itr->next != NULL) {
 			itr = itr->next;
 		}
 		
-		new_w->next = itr->next;
 		itr->next = new_w;
 	}
 	
