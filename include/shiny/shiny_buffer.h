@@ -12,7 +12,8 @@
 
 typedef struct shiny_buffer shiny_buffer;
 
+shiny_thingy * create_shiny_buffer();
 void draw_shiny_buffer(shiny_buffer *, shiny_loc, shiny_size);
-void set_buffer(shiny_buffer * thingy, pixel_buffer buff);
+void set_shiny_buffer(shiny_buffer * thingy, pixel_buffer buff);
 
 #endif

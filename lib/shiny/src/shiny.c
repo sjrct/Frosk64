@@ -4,11 +4,11 @@
 // written by naitsirhc
 //
 
+#include <stdlib.h>
 #include <expanse.h>
 #include <stdbool.h>
 #include <events.h>
 #include <frosk.h>
-#include <stdlib.h>
 #include <shiny/shiny.h>
 
 
@@ -54,17 +54,15 @@ shiny_thingy * create_shiny_expanse(int width, int height) {
 	shiny_thingy * expanse;
 	expanse_list * itr;
 	
-	
 	exp.width = width;
 	exp.height = height;
-	
 	
 	call_func(ES_CREATE_EXPANSE);
 	send_data(&exp, sizeof(exp));
 	
 	handle = recieve_handle();
 	
-	expanse = create_container(width, height);
+	expanse = create_shiny_container(width, height);
 	
 	if(exp_list == NULL) {
 		exp_list = malloc(sizeof(expanse_list));
@@ -115,16 +113,16 @@ void destroy_expanse(expanse_handle handle) {
 	
 	remove_expanse(handle);
 }
-/*
-void draw_buffer(expanse_handle handle, pixel_buffer buffer, shiny_loc loc) {
-	call_func(UPDATE_PARTIAL_EXPANSE);
+
+void draw_buffer(pixel_buffer buffer, shiny_loc loc) {
+/*	call_func(UPDATE_PARTIAL_EXPANSE);
 	send_int(expanse_handle);
 	send_int(loc.x);
 	send_int(loc.y);
 	send_int(buffer.width);
 	send_int(buffer.height);
-	send_buffer(buffer);
-}*/
+	send_buffer(buffer);*/
+}
 
 void register_event_handler(shiny_thingy * thingy, event_type type, bool (*handler_func)(shiny_thingy *, event)) {
 	event_handler_list * itr;
@@ -183,24 +181,37 @@ void shiny_main_loop() {
 	event_list * el_itr;
 	expanse_list * itr;
 	event_list * el;
-	event_list * all_el = get_events();
+	event_list * all_el;
 	
+	shiny_loc loc;
+	loc.x = 0;
+	loc.y = 0;
 	
-	// Might be able to do better
 	for(itr = exp_list; itr != NULL; itr = itr->next) {
-		el = events_in_window(all_el, itr->handle);
+		loc.expanse_handle = itr->handle;
+		itr->expanse -> loc = loc;
+		draw(itr->expanse);
+	}
 	
-		for(el_itr = el; el_itr != NULL; el_itr = el_itr->next) {
-			for(eh_itr = eh_list; eh_itr != NULL; eh_itr = eh_itr->next) {
-				handler = eh_itr->handler;
-				thingy = handler.thingy;
-				event = el_itr->event;
+	while(1) {
+		all_el = get_events();
+
+		// Might be able to do better
+		for(itr = exp_list; itr != NULL; itr = itr->next) {
+			el = events_in_window(all_el, itr->handle);
+	
+			for(el_itr = el; el_itr != NULL; el_itr = el_itr->next) {
+				for(eh_itr = eh_list; eh_itr != NULL; eh_itr = eh_itr->next) {
+					handler = eh_itr->handler;
+					thingy = handler.thingy;
+					event = el_itr->event;
 				
-				if (thingy->exp_handle == itr->handle 	&&	// Same expanse
-					event.type == handler.type			&& 	// Same type
-					in_range(event, thingy)				&&	// Same location
-					handler.handler_func(thingy, event)) {	// Event was handled
-						break;
+					if (thingy->loc.expanse_handle == itr->handle 	&&	// Same expanse
+						event.type == handler.type			&& 		// Same type
+						in_range(event, thingy)				&&		// Same location
+						handler.handler_func(thingy, event)) {		// Event was handled
+							break;
+					}
 				}
 			}
 		}

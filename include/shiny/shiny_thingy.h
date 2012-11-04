@@ -16,6 +16,7 @@
 
 struct shiny_loc {
 	int x, y;
+	expanse_handle expanse_handle;
 };
 struct shiny_size {
 	int width, height;
@@ -34,11 +35,9 @@ struct shiny_thingy {
 		struct shiny_buffer * buffer;
 		struct shiny_container * container;
 	} ptr;
-	
-	expanse_handle exp_handle;
 };
 
 
-void draw(shiny_thingy *, shiny_loc);
+void draw(shiny_thingy *);
 
 #endif

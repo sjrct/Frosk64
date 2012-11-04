@@ -20,7 +20,7 @@ struct shiny_container{
 };
 
 
-shiny_thingy * create_container(int width, int height) {
+shiny_thingy * create_shiny_container(int width, int height) {
 	shiny_thingy * thingy = malloc(sizeof(shiny_thingy));
 	SHINY_CONTAINER(thingy) = malloc(sizeof(shiny_container));
 	thingy->size.width = width;
@@ -28,7 +28,7 @@ shiny_thingy * create_container(int width, int height) {
 	return thingy;
 }
 
-void add_thingy(shiny_container * container, shiny_thingy * thingy) {
+void container_add_thingy(shiny_container * container, shiny_thingy * thingy) {
 	container_list * itr;
 	
 	if(container->things != NULL) {
@@ -43,7 +43,7 @@ void add_thingy(shiny_container * container, shiny_thingy * thingy) {
 	itr->thingy = thingy;
 }
 
-void remove_thingy(shiny_container * container, shiny_thingy * thingy) {
+void container_remove_thingy(shiny_container * container, shiny_thingy * thingy) {
 	container_list * itr = container->things;
 	container_list * found;
 	
@@ -73,8 +73,6 @@ void remove_thingy(shiny_container * container, shiny_thingy * thingy) {
 void draw_shiny_container(shiny_container * container, shiny_loc loc, shiny_size size) {
 	container_list * itr;
 	
-	// TODO change size
-	
 	// TODO draw border
 	
 	//fill_rect(loc->x, loc->y, width, height, bg_color);
@@ -85,7 +83,7 @@ void draw_shiny_container(shiny_container * container, shiny_loc loc, shiny_size
 		for (itr = container->things; itr != NULL; itr = itr->next) {
 			itr->thingy->loc = loc;
 			//TODO change itr->thingy size
-			draw(itr->thingy, loc);
+			draw(itr->thingy);
 			loc.x += itr->thingy->size.width;
 		}
 	}

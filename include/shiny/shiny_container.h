@@ -11,10 +11,10 @@
 
 typedef struct shiny_container shiny_container;
 
-shiny_thingy * create_container(int width, int height);
+shiny_thingy * create_shiny_container(int width, int height);
 
-void add_thingy(shiny_container *, shiny_thingy *);
-void remove_thingy(shiny_container *, shiny_thingy *);
+void container_add_thingy(shiny_container *, shiny_thingy *);
+void container_remove_thingy(shiny_container *, shiny_thingy *);
 
 void draw_shiny_container(shiny_container *, shiny_loc, shiny_size);
 
