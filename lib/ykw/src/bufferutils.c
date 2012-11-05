@@ -6,6 +6,7 @@
 
 #include <bufferutils.h>
 #include <stdlib.h>
+#include <frosk.h>
 
 pixel_buffer create_buffer(int width, int height, pixel fill)
 {
@@ -96,4 +97,29 @@ char * linear_buffer(pixel_buffer pb)
 	}
 	
 	return  b;
+}
+
+void send_buffer(pid_t pid, int port, pixel_buffer buffer) {
+	int i;
+	send(pid, port, &buffer.width, sizeof(int));
+	send(pid, port, &buffer.height, sizeof(int));
+	
+	for(i = 0; i < buffer.width; i++) {
+		send(pid, port, buffer.buffer[i], sizeof(pixel) * buffer.height);
+	}
+}
+
+pixel_buffer receive_buffer(pid_t pid, int port) {
+	pixel_buffer buffer;
+	int i;
+	pixel p = { 0, 0, 0 };
+	while(!receive(pid, port, &buffer.width, sizeof(int)));
+	while(!receive(pid, port, &buffer.height, sizeof(int)));
+	
+	buffer = create_buffer(buffer.width, buffer.height, p);
+	
+	for(i = 0; i < buffer.width; i++) {
+		while(!receive(pid, port, buffer.buffer[i], sizeof(pixel) * buffer.height));
+	}
+	return buffer;
 }

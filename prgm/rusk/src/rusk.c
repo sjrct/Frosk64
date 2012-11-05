@@ -52,6 +52,22 @@ int main() {
 	}
 }
 
+void update_partial(expanse_handle handle, pixel_buffer p, int x, int y) {
+	int i, j;
+	
+	full_expanse * itr;;
+	
+	for(itr = expanses; itr->handle != handle; itr = itr->next);
+	
+	for(i = 0; i < p.width; i++) {
+		for(j = 0; j < p.height; j++) {
+			itr->expanse_buffer.buffer[i+x][j+y] = p.buffer[i][j];
+		}
+	}
+	itr->dirty_lbuf = true;
+}
+
+
 /*void register_em(pid_t expanse_manager, int port) {
 	em = expanse_manager;
 	em_port = port;
@@ -61,11 +77,12 @@ expanse_handle add_expanse(const api_expanse* e) {
 	expanse exp;
 	pixel pxl = { 0, 128, 0 };
 
+
 	full_expanse* itr = expanses;
 	full_expanse* new_e = malloc(sizeof(full_expanse));
 
-	exp.x = 0;
-	exp.y = 0;
+	exp.x = 10;
+	exp.y = 10;
 	exp.sub_offset_x = 0;
 	exp.sub_offset_y = 0;
 	exp.width = e->width;

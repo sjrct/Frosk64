@@ -16,11 +16,12 @@ shiny_thingy * create_shiny_buffer() {
 	shiny_thingy * thingy;
 	thingy = malloc(sizeof(shiny_thingy));
 	SHINY_BUFFER(thingy) = malloc(sizeof(shiny_buffer));
+	thingy->type = BUFFER;
 	return thingy;
 }
 
 void draw_shiny_buffer(shiny_buffer * buffer, shiny_loc loc, shiny_size size) {
-	resize_buffer(buffer->buffer, size.width, size.height);
+//	resize_buffer(buffer->buffer, size.width, size.height);
 	draw_buffer(buffer->buffer, loc);
 }
 

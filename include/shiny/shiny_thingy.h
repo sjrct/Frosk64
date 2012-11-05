@@ -32,8 +32,8 @@ struct shiny_thingy {
 	} type;
 	
 	union {
-		struct shiny_buffer * buffer;
-		struct shiny_container * container;
+		shiny_buffer * buffer;
+		shiny_container * container;
 	} ptr;
 };
 

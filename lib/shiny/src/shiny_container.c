@@ -25,10 +25,12 @@ shiny_thingy * create_shiny_container(int width, int height) {
 	SHINY_CONTAINER(thingy) = malloc(sizeof(shiny_container));
 	thingy->size.width = width;
 	thingy->size.height = height;
+	thingy->type = 	CONTAINER;
 	return thingy;
 }
 
 void container_add_thingy(shiny_container * container, shiny_thingy * thingy) {
+
 	container_list * itr;
 	
 	if(container->things != NULL) {
@@ -41,6 +43,7 @@ void container_add_thingy(shiny_container * container, shiny_thingy * thingy) {
 	}
 	
 	itr->thingy = thingy;
+	return;
 }
 
 void container_remove_thingy(shiny_container * container, shiny_thingy * thingy) {
@@ -79,12 +82,13 @@ void draw_shiny_container(shiny_container * container, shiny_loc loc, shiny_size
 	
 	//TODO straighten out how the drawing is done and how the location is passed
 	
-	if (container->things != NULL) {
-		for (itr = container->things; itr != NULL; itr = itr->next) {
-			itr->thingy->loc = loc;
-			//TODO change itr->thingy size
-			draw(itr->thingy);
-			loc.x += itr->thingy->size.width;
-		}
+
+	for (itr = container->things; itr != NULL; itr = itr->next) {
+		loc.x += 4;
+		loc.y += 4;
+		itr->thingy->loc = loc;
+		//TODO change itr->thingy size
+		draw(itr->thingy);
+		loc.x += itr->thingy->size.width;
 	}
 }
