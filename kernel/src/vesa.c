@@ -18,29 +18,36 @@
 #define DATA_ROT     3
 #define GR_MODE      5
 #define BIT_MASK     8
-//#include <cmn/io.h>
+
 video_mode_info * cur_vmi = (video_mode_info*)VM_INFO_LOC;
-//static ulong virt_addr = 0;
+static ulong virt_addr = 0;
 
 void init_vesa(void)
 {
-	//unumber u;
-//	ulong size = cur_vmi->yres * cur_vmi->ppsl;
-//	if (size % 0x1000) size = (size & ~0xFFF) + 0x1000;
+	ulong size = cur_vmi->yres * cur_vmi->ppsl;
+	if (size % 0x1000) size = (size & ~0xFFF) + 0x1000;
+	virt_addr = KSPACE_LOC + 0x210000;	// FIXME
 //	virt_addr = alloc_pages(size / 0x1000, KVIRT_PAGES);
-/*	
-	u.b = 0x10;
-	u.n = virt_addr;
-	putu(&u);
-	putnl();
-	u.n = size;
-	putu(&u);
-	putnl();
-*/	
-//	page_in(cur_vmi->phys_base_ptr, virt_addr, 0x4000, 3);
+	page_in(cur_vmi->phys_base_ptr, virt_addr, size, 3);
 }
 
 void vesa_draw(char * rect, int sx, int sy, int w, int h)
+{
+	ulong addr;
+	int x, y, k, i = 0;
+	int mx = cur_vmi->bpp / 8;
+	int my = cur_vmi->ppsl;
+	
+	for (y = sy; y < sy + h; y++) {
+		for (x = sx; x < sx + w; x++) {
+			addr = virt_addr + x * mx + y * my;
+			for (k = 0; k < mx; k++) {
+				ATB(addr + k) = rect[i++];
+			}
+		}
+	}
+}
+/*
 {
 	// TODO remove page switches from this function
 	//	(it would be faster and no potential data loss)
@@ -68,6 +75,7 @@ void vesa_draw(char * rect, int sx, int sy, int w, int h)
 		}
 	}
 }
+*/
 
 gr_info * vesa_get_info(void)
 {

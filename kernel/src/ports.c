@@ -29,6 +29,7 @@ void send(kern_obj * to, int port, const char * buf, ulong size)
 			l = c;
 		}
 		
+		if (c->u.porti.next == NULL) break;
 		c = c->u.porti.next;
 	}
 	
@@ -47,21 +48,26 @@ void send(kern_obj * to, int port, const char * buf, ulong size)
 	if (size % 0x1000) n++;
 	
 	d = alloc_kobj();
-	c = alloc_kobj();
+	l = alloc_kobj();
 	
-	c->type = KOBJ_PORT_INDEX;
-	c->u.porti.port = port;
-	c->u.porti.data = d;
-	c->u.porti.next = head;
-	c->u.porti.to = to;
+	l->type = KOBJ_PORT_INDEX;
+	l->u.porti.port = port;
+	l->u.porti.data = d;
+	l->u.porti.next = NULL;
+	l->u.porti.to = to;
 
 	d->type = KOBJ_PORT_DATA;
 	d->u.portd.size = size;
 	d->u.portd.from = from;
 	d->u.portd.addr = (void*)alloc_pages(n, KVIRT_PAGES);
 	d->u.portd.off = 0;
+
+	if (c == NULL) {
+		head = l;
+	} else {
+		c->u.porti.next = l;
+	}
 	
-	head = c;
 	memcpy(d->u.portd.addr, buf, size);
 }
 
@@ -75,7 +81,8 @@ kern_obj * poll(int port)
 	
 	while (c != NULL) {
 		if (c->u.porti.port == port && c->u.porti.to == to
-			&& c->u.porti.data->u.portd.size != 0) {
+			&& c->u.porti.data->u.portd.size != 0)
+		{
 			return c->u.porti.data->u.portd.from;
 		}
 		
