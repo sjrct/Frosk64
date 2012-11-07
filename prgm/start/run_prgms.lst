@@ -4,5 +4,5 @@
 # list of programs to run on startup
 #
 
-/prgm/fui/fui
 /prgm/rusk/rusk
+/prgm/fui/fui

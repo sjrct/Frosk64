@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <events.h>
 #include <frosk.h>
+#include <bufferutils.h>
 #include <shiny/shiny.h>
 
 
@@ -32,21 +33,24 @@ typedef struct event_handler_list {
 event_handler_list * eh_list;
 expanse_list * exp_list;
 
+pid_t get_esyspid() {
+	while(!get_esys());
+	return get_esys();
+}
 
 void call_func(int func) {
-
+	send(get_esyspid(), ES_COMM_PORT, &func, sizeof(int));
 }
 
 void send_data(void * data, int size) {
-	
+	send(get_esyspid(), ES_COMM_PORT, data, size);
 }
 
 expanse_handle recieve_handle() {
 	expanse_handle h;
-	while(!receive(0, ES_COMM_PORT, &h, sizeof(expanse_handle)));
+	while(!receive(get_esyspid(), ES_COMM_PORT, &h, sizeof(expanse_handle)));
 	return h;
 }
-
 
 shiny_thingy * create_shiny_expanse(int width, int height) {
 	api_expanse exp;
@@ -58,8 +62,8 @@ shiny_thingy * create_shiny_expanse(int width, int height) {
 	exp.height = height;
 	
 	call_func(ES_CREATE_EXPANSE);
-	send_data(&exp, sizeof(exp));
-	
+	send_data(&exp, sizeof(api_expanse));
+
 	handle = recieve_handle();
 	
 	expanse = create_shiny_container(width, height);
@@ -115,13 +119,11 @@ void destroy_expanse(expanse_handle handle) {
 }
 
 void draw_buffer(pixel_buffer buffer, shiny_loc loc) {
-/*	call_func(UPDATE_PARTIAL_EXPANSE);
-	send_int(expanse_handle);
-	send_int(loc.x);
-	send_int(loc.y);
-	send_int(buffer.width);
-	send_int(buffer.height);
-	send_buffer(buffer);*/
+	call_func(ES_UPDATE_PARTIAL_EXPANSE);
+	send_data(&loc.expanse_handle, sizeof(expanse_handle));
+	send_data(&loc.x, sizeof(int));
+	send_data(&loc.y, sizeof(int));
+	send_buffer(get_esyspid(), ES_COMM_PORT, buffer);
 }
 
 void register_event_handler(shiny_thingy * thingy, event_type type, bool (*handler_func)(shiny_thingy *, event)) {
@@ -193,7 +195,7 @@ void shiny_main_loop() {
 		draw(itr->expanse);
 	}
 	
-	while(1) {
+	while(0) {
 		all_el = get_events();
 
 		// Might be able to do better
