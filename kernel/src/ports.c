@@ -7,20 +7,25 @@
 #include "ports.h"
 #include "kstrlib.h"
 #include "pagemgr.h"
+#include "lock.h"
 
 extern kern_obj * current_thread;
 
 static kern_obj * head = NULL;
+static int plock = 0;
 
 void send(kern_obj * to, int port, const char * buf, ulong size)
 {
 	ulong n;
-	kern_obj * c = head;
+	kern_obj * c;
 	kern_obj * l = NULL;
 	kern_obj * from, * d;
-
+	
 	if (current_thread == NULL) return;
 	from = current_thread->u.thrd.proc;
+	
+	getlock(&plock, 0);
+	c = head;
 	
 	while (c != NULL) {
 		if (c->u.porti.port == port && c->u.porti.to == to
@@ -40,6 +45,7 @@ void send(kern_obj * to, int port, const char * buf, ulong size)
 		if (0x1000 - 0x1000 % n >= size) {
 			memcpy(d->u.portd.addr + n, buf, size);
 			d->u.portd.size += size;
+			unlock(&plock, 0);
 			return;
 		}
 	}
@@ -69,36 +75,46 @@ void send(kern_obj * to, int port, const char * buf, ulong size)
 	}
 	
 	memcpy(d->u.portd.addr, buf, size);
+	
+	unlock(&plock, 0);
 }
 
 kern_obj * poll(int port)
 {
-	kern_obj * c = head;
+	kern_obj * c;
 	kern_obj * to;
 
 	if (current_thread == NULL) return NULL;
 	to = current_thread->u.thrd.proc;
 	
+	getlock(&plock, 0);
+	c = head;
+	
 	while (c != NULL) {
 		if (c->u.porti.port == port && c->u.porti.to == to
 			&& c->u.porti.data->u.portd.size != 0)
 		{
+			unlock(&plock, 0);
 			return c->u.porti.data->u.portd.from;
 		}
 		
 		c = c->u.porti.next;
 	}
 	
+	unlock(&plock, 0);
 	return NULL;
 }
 
 int receive(kern_obj * from, int port, char * buf, ulong size)
 {
-	kern_obj * c = head;
+	kern_obj * c;
 	kern_obj * to, * d;
 	
 	if (current_thread == NULL) return 0;
 	to = current_thread->u.thrd.proc;
+	
+	getlock(&plock, 0);
+	c = head;
 	
 	while (c != NULL) {
 		if (c->u.porti.port == port && c->u.porti.to == to) {
@@ -115,12 +131,14 @@ int receive(kern_obj * from, int port, char * buf, ulong size)
 					d->u.portd.off %= 0x1000;
 				}
 
+				unlock(&plock, 0);
 				return 1;
 			}
 		}
 		
 		c = c->u.porti.next;
 	}
-
+	
+	unlock(&plock, 0);
 	return 0;	
 }
