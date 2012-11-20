@@ -34,7 +34,6 @@ static driver drivers[MAX_DRIVERS];
 void init_drivers(void)
 {
 	BUILTIN_DRIVER(DRIVER_ID_EHCI, ehci, DRIVER_OTHER);
-	BUILTIN_DRIVER(DRIVER_ID_KEYBOARD, keyboard, DRIVER_SCHAR);
 	BUILTIN_DRIVER(DRIVER_ID_CGA_TEXT, cga_text, DRIVER_OTHER);
 
 	// TODO read additional drivers from config file

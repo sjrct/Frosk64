@@ -16,6 +16,7 @@
 #include "driver.h"
 #include "syscall.h"
 #include "tss.h"
+#include "keyboard.h"
 
 #include "cga_text.h"
 #include "vesa.h"
@@ -48,6 +49,7 @@ void __attribute__ ((noreturn)) kmain()
 	init_idt();
 	init_tss();
 
+	kb_init();
 	init_graphics();
 
 	hndl = fs_aquire("/sys/prgm/start/start", 0, 1);

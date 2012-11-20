@@ -73,18 +73,16 @@ ulong alloc_pages(uint sz, page_type ty)
 
 	while (cur != NULL) {
 		if (cur->u.pmem.size >= sz && cur->u.pmem.type == USABLE) {
+			addr = cur->u.pmem.addr;
 			if (cur->u.pmem.size == sz) {
 				if (prev == NULL) head[ty] = cur->u.pmem.next;
 				else prev->u.pmem.next = cur->u.pmem.next;
-				addr = cur->u.pmem.addr;
 				free_kobj(cur);
-				return addr;
 			} else {
-				addr = cur->u.pmem.addr;
 				cur->u.pmem.size = cur->u.pmem.size - sz;
 				cur->u.pmem.addr += sz;
-				return addr;
 			}
+			return addr;
 		}
 
 		prev = cur;

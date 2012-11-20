@@ -77,7 +77,7 @@ pixel_buffer copy_buffer(pixel_buffer opb) {
 	for (x = 0; x < pb.width; x++) {
 		pb.buffer[x] = malloc(sizeof(pixel) * pb.height);
 
-		for (y = 0; y < pb.width; y++) {
+		for (y = 0; y < pb.height; y++) {
 			pb.buffer[x][y] = opb.buffer[x][y];
 		}
 	}
