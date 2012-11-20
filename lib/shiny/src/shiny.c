@@ -119,7 +119,7 @@ void destroy_expanse(expanse_handle handle) {
 }
 
 void draw_buffer(pixel_buffer buffer, shiny_loc loc) {
-	call_func(ES_UPDATE_PARTIAL_EXPANSE);
+	call_func(ES_UPDATE_EXPANSE_API_BUFFER);
 	send_data(&loc.expanse_handle, sizeof(expanse_handle));
 	send_data(&loc.x, sizeof(int));
 	send_data(&loc.y, sizeof(int));
@@ -146,13 +146,14 @@ void register_event_handler(shiny_thingy * thingy, event_type type, bool (*handl
 }
 
 bool in_range(event ev, shiny_thingy * thingy) {
+	return true; /*
 	shiny_loc loc = thingy->loc;
 	shiny_size size = thingy->size;
 	return 
 		loc.x <= ev.x &&
 		loc.y <= ev.y &&
 		loc.x + size.width  >= ev.x &&
-		loc.y + size.height >= ev.y;
+		loc.y + size.height >= ev.y;*/
 }
 
 event_list * events_in_window(event_list * events, expanse_handle handle){
@@ -189,14 +190,17 @@ void shiny_main_loop() {
 	loc.x = 0;
 	loc.y = 0;
 	
+
 	for(itr = exp_list; itr != NULL; itr = itr->next) {
 		loc.expanse_handle = itr->handle;
-		itr->expanse -> loc = loc;
+		itr->expanse->loc = loc;
 		draw(itr->expanse);
 	}
 	
+	return;
+
 	while(0) {
-		all_el = get_events();
+		all_el = get_events(get_esyspid(), ES_COMM_PORT);
 
 		// Might be able to do better
 		for(itr = exp_list; itr != NULL; itr = itr->next) {

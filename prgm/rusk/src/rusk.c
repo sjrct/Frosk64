@@ -16,7 +16,6 @@ typedef struct full_expanse {
 	pid_t pid;
 	char * lbuf;
 	bool dirty_lbuf;
-	expanse_handle handle;
 	struct full_expanse * next;
 } full_expanse;
 
@@ -32,6 +31,7 @@ void try_draw() {
 
 	for(itr = expanses; itr != NULL; itr = itr->next) {
 		exp = &itr->exp;
+		if(!exp->visible) continue;
 		if (itr->dirty_lbuf) {
 			free(itr->lbuf);
 			itr->lbuf = linear_buffer(itr->expanse_buffer);
@@ -57,7 +57,7 @@ void update_partial(expanse_handle handle, pixel_buffer p, int x, int y) {
 	
 	full_expanse * itr;;
 	
-	for(itr = expanses; itr->handle != handle; itr = itr->next);
+	for(itr = expanses; itr->exp.handle != handle; itr = itr->next);
 	
 	for(i = 0; i < p.width; i++) {
 		for(j = 0; j < p.height; j++) {
@@ -67,16 +67,9 @@ void update_partial(expanse_handle handle, pixel_buffer p, int x, int y) {
 	itr->dirty_lbuf = true;
 }
 
-
-/*void register_em(pid_t expanse_manager, int port) {
-	em = expanse_manager;
-	em_port = port;
-}*/
-
-expanse_handle add_expanse(const api_expanse* e) {
+expanse add_expanse(const api_expanse* e) {
 	expanse exp;
 	pixel pxl = { 0, 128, 0 };
-
 
 	full_expanse* itr = expanses;
 	full_expanse* new_e = malloc(sizeof(full_expanse));
@@ -87,6 +80,7 @@ expanse_handle add_expanse(const api_expanse* e) {
 	exp.sub_offset_y = 0;
 	exp.width = e->width;
 	exp.height = e->height;
+	exp.visible = true;
 	
 	exp.api_exp = *e;
 	
@@ -94,7 +88,8 @@ expanse_handle add_expanse(const api_expanse* e) {
 	new_e->exp = exp;
 	new_e->expanse_buffer = create_buffer(e->width, e->height, pxl);
 	new_e->dirty_lbuf = true;
-	new_e->lbuf = NULL;
+	new_e->lbuf = NULL;	
+	new_e->exp.handle = (expanse_handle)e;
 	
 	if (itr == NULL) {
 		expanses = new_e;
@@ -106,8 +101,7 @@ expanse_handle add_expanse(const api_expanse* e) {
 		itr->next = new_e;
 	}
 	
-	new_e->handle = (expanse_handle)e;
-	return new_e->handle;
+	return exp;
 }
 
 void remove_expanse(expanse_handle e) {
@@ -119,14 +113,14 @@ void remove_expanse(expanse_handle e) {
 	}
 	
 	if (itr->next == NULL) {
-		if (itr->handle == e) {
+		if (itr->exp.handle == e) {
 			free(expanses);
 			expanses = NULL;
 		} // else error?
 		return;
 	}
 	
-	while (itr->next != NULL && itr->next->handle != e) {
+	while (itr->next != NULL && itr->next->exp.handle != e) {
 		itr = itr->next;
 	}
 	
@@ -134,6 +128,21 @@ void remove_expanse(expanse_handle e) {
 		new_next = itr->next->next;
 		free(itr->next);
 		itr->next = new_next;
+	}
+}
+
+void update_expanse(expanse e) {
+	full_expanse* itr = expanses;
+	
+	if(itr == NULL) {
+		return;
+	}
+	
+	for(; itr->next != NULL; itr = itr->next) {
+		if(itr->exp.handle == e.handle) {
+			itr->exp = e;
+			break;
+		}
 	}
 }
 
@@ -145,7 +154,7 @@ void bring_expanse_to_front(expanse_handle e) {
 		return;
 	}
 	
-	while(itr->next != NULL && itr->next->handle != e) {
+	while(itr->next != NULL && itr->next->exp.handle != e) {
 		itr = itr->next;
 	}
 	

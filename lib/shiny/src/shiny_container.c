@@ -83,9 +83,9 @@ void draw_shiny_container(shiny_container * container, shiny_loc loc, shiny_size
 	//TODO straighten out how the drawing is done and how the location is passed
 	
 
-	for (itr = container->things; itr != NULL; itr = itr->next) {
 		loc.x += 4;
 		loc.y += 4;
+	for (itr = container->things; itr != NULL; itr = itr->next) {
 		itr->thingy->loc = loc;
 		//TODO change itr->thingy size
 		draw(itr->thingy);
