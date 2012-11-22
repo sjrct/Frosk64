@@ -10,7 +10,7 @@ TARGET     = frosk.img
 
 UTILS_B    = f301_builder
 PRGMS_B    = start frash fui rusk bearing
-LIBS_B     = shiny ykw events cstd fapi
+LIBS_B     = shiny ykw events cstd debug fapi
 
 MAKE       := $(MAKE) --no-print-directory
 

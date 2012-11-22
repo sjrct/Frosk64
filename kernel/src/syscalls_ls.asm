@@ -21,6 +21,7 @@ extern unreg_wsys
 extern get_current_proc
 extern get_mouse_pos
 extern kb_read
+extern write_serial
 
 global syscalls_ls
 syscalls_ls:
@@ -41,5 +42,6 @@ syscalls_ls:
 	dq get_current_proc
 	dq get_mouse_pos ; 15
 	dq kb_read
+	dq write_serial
 
 syscalls_count: equ ($ - syscalls_ls) / 8

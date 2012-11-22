@@ -1,3 +1,4 @@
+
 //
 // fui.c
 //
@@ -12,6 +13,7 @@
 
 int main()
 {
+
 	int x, y;
 	pixel_buffer buf;
 	
@@ -27,8 +29,7 @@ int main()
 			buf.buffer[x][y].b = (x + y) % 255;
 		}
 	}	
-
-	expanse = create_shiny_expanse(150, 150);
+	expanse = create_shiny_expanse(150, 50);
 	buffer = create_shiny_buffer();
 
 	buffer->size.width = SIZE;
@@ -36,15 +37,9 @@ int main()
 	
 	set_shiny_buffer(SHINY_BUFFER(buffer), buf);
 	container_add_thingy(SHINY_CONTAINER(expanse), buffer);
-//	container_add_thingy(SHINY_CONTAINER(expanse), buffer);
-//	container_add_thingy(SHINY_CONTAINER(expanse), buffer);
-
-	
-
+	container_add_thingy(SHINY_CONTAINER(expanse), buffer);
+	container_add_thingy(SHINY_CONTAINER(expanse), buffer);
 
 	shiny_main_loop();
- 	gr_draw(linear_buffer(buf), 200,0,SIZE,SIZE);
-//		gr_draw(linear_buffer(buf), 200,0,SIZE,SIZE);
-	while(1);
 	return 0;
 }

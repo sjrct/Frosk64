@@ -11,6 +11,7 @@
 #include <frosk.h>
 #include <bufferutils.h>
 #include <shiny/shiny.h>
+#include <debug.h>
 
 
 typedef struct expanse_list {
@@ -34,6 +35,7 @@ event_handler_list * eh_list;
 expanse_list * exp_list;
 
 pid_t get_esyspid() {
+	int i;
 	while(!get_esys());
 	return get_esys();
 }
@@ -61,11 +63,11 @@ shiny_thingy * create_shiny_expanse(int width, int height) {
 	exp.width = width;
 	exp.height = height;
 	
+
 	call_func(ES_CREATE_EXPANSE);
 	send_data(&exp, sizeof(api_expanse));
 
 	handle = recieve_handle();
-	
 	expanse = create_shiny_container(width, height);
 	
 	if(exp_list == NULL) {
@@ -196,10 +198,8 @@ void shiny_main_loop() {
 		itr->expanse->loc = loc;
 		draw(itr->expanse);
 	}
-	
-	return;
 
-	while(0) {
+	while(1) {
 		all_el = get_events(get_esyspid(), ES_COMM_PORT);
 
 		// Might be able to do better

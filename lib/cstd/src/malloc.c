@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <debug.h>
 
 typedef struct header {
 	size_t size;
@@ -17,6 +18,9 @@ static header * hdr = NULL;
 
 void * malloc(size_t sz)
 {
+//	debug_line("**");
+//	debug_number(sz);
+
 	static bool first = true;
 	header * cur, * prv;
 
@@ -26,6 +30,7 @@ void * malloc(size_t sz)
 		hdr->next = hdr;
 		first = false;
 	}
+
 
 	if (hdr == NULL) return NULL;
 	
@@ -37,6 +42,9 @@ void * malloc(size_t sz)
 	prv = hdr;
 	do {
 		if (cur->size >= sz) {
+//			debug_line("***");
+//			debug_number(cur+1);
+
 			if (cur->size == sz) {
 				if (cur == cur->next) {
 					hdr = NULL;
@@ -64,7 +72,9 @@ void * malloc(size_t sz)
 		prv = cur;
 		cur = cur->next;
 	} while (cur == hdr->next);
-	
+	debug_line("MALLOC FAIL!");
+	debug_number(cur);
+	debug_number(hdr->next);
 	return NULL;
 }
 
@@ -99,6 +109,9 @@ void * realloc(void * old, size_t sz)
 
 void free(void * ptr)
 {
+	return;
+	debug_line("free: ");
+	debug_number(ptr);
 	header * cur, * prv;
 	header * ph;
 	
@@ -138,4 +151,5 @@ void free(void * ptr)
 		ph->next = hdr->next;
 		hdr->next = ph;
 	}
+	debug_line("freedone");
 }

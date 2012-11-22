@@ -34,5 +34,6 @@ typedef long pid_t;
 #define get_current_proc()  _syscall0_(14)
 #define get_mouse_pos(X,Y)  _syscall2_((ulong)(X), (ulong)(Y), 15)
 #define kb_read(B,S)        _syscall2_((ulong)(B),S,16)
+#define write_serial(X)      _syscall1_(X,17)
 
 #endif

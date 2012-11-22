@@ -44,13 +44,13 @@ kern_obj * spawn_process(const uchar * cd, ulong csz, ulong dsz, ulong bsz, kern
 	proc->u.proc.code_data_ws = alloc_ws();
 	
 	pgs = csz / 0x1000 + dsz / 0x1000 + bsz / 0x1000;
-	pbase = alloc_pages(pgs + 0x100, PHYS_PAGES);
+	pbase = alloc_pages(pgs + 0x200, PHYS_PAGES);
 	if (pbase == 0) {
 		free_kobj(proc);
 		return NULL;
 	}
 
-	add_pgs_to_ws(proc->u.proc.code_data_ws, USPACE_BOT, pbase, csz + dsz + bsz + 0x100000, 7);
+	add_pgs_to_ws(proc->u.proc.code_data_ws, USPACE_BOT, pbase, csz + dsz + bsz + 0x200000, 7);
 
 	for (i = 0; i < ssz + absz; i++) {
 		if (i % 0x1000 == 0) {

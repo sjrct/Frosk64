@@ -11,7 +11,8 @@
 #include <expanse.h>
 
 void serve(void);
-void debug(int);
+
+
 void register_wm(pid_t expanse_manager);
 expanse add_expanse(const api_expanse*);
 void remove_expanse(expanse_handle w);

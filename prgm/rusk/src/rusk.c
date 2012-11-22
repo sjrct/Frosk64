@@ -9,6 +9,7 @@
 #include <expanse.h>
 #include <bufferutils.h>
 #include "rusk_intrn.h"
+#include <debug.h>
 
 typedef struct full_expanse {
 	expanse exp;
@@ -25,25 +26,24 @@ void try_draw() {
 	expanse * exp;
 	full_expanse * itr;
 
-	static int counter = 0;
-	if (counter++ < 100) return;
-	counter = 0;
 
 	for(itr = expanses; itr != NULL; itr = itr->next) {
 		exp = &itr->exp;
 		if(!exp->visible) continue;
 		if (itr->dirty_lbuf) {
-			free(itr->lbuf);
+			if(itr->lbuf != NULL) {
+				free(itr->lbuf);
+			}
 			itr->lbuf = linear_buffer(itr->expanse_buffer);
 			itr->dirty_lbuf = false;
 		}
+//		itr->exp.x++;
 		gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
 	}
 }
 
 int main() {
 	reg_esys();
-
 	while(1) {
 		serve();
 		//poll_keyb();
@@ -55,10 +55,9 @@ int main() {
 void update_partial(expanse_handle handle, pixel_buffer p, int x, int y) {
 	int i, j;
 	
-	full_expanse * itr;;
-	
-	for(itr = expanses; itr->exp.handle != handle; itr = itr->next);
-	
+	full_expanse * itr;
+	for(itr = expanses; itr != NULL && itr->exp.handle != handle; itr = itr->next);
+	if(itr == NULL) return;
 	for(i = 0; i < p.width; i++) {
 		for(j = 0; j < p.height; j++) {
 			itr->expanse_buffer.buffer[i+x][j+y] = p.buffer[i][j];
@@ -101,7 +100,7 @@ expanse add_expanse(const api_expanse* e) {
 		itr->next = new_e;
 	}
 	
-	return exp;
+	return new_e->exp;
 }
 
 void remove_expanse(expanse_handle e) {

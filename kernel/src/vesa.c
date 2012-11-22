@@ -20,19 +20,19 @@
 #define BIT_MASK     8
 
 video_mode_info * cur_vmi = (video_mode_info*)VM_INFO_LOC;
-//static ulong virt_addr = 0;
+static ulong virt_addr = 0;
 
 void init_vesa(void)
 {
-//	ulong size = cur_vmi->yres * cur_vmi->ppsl;
-//	if (size % 0x1000) size = (size & ~0xFFF) + 0x1000;
-//	virt_addr = KSPACE_LOC + 0x100000;	// FIXME
+	ulong size = cur_vmi->yres * cur_vmi->ppsl;
+	if (size % 0x1000) size = (size & ~0xFFF) + 0x1000;
+	virt_addr = KSPACE_LOC + 0x100000;	// FIXME
 //	virt_addr = alloc_pages(size / 0x1000, KVIRT_PAGES);
-//	page_in(cur_vmi->phys_base_ptr, virt_addr, size, 3);
+	page_in(cur_vmi->phys_base_ptr, virt_addr, size, 3);
 }
 
 void vesa_draw(char * rect, int sx, int sy, int w, int h)
-/*{
+{
 	ulong addr;
 	int x, y, k, i = 0;
 	int mx = cur_vmi->bpp / 8;
@@ -47,8 +47,9 @@ void vesa_draw(char * rect, int sx, int sy, int w, int h)
 		}
 	}
 }
-*/
+/*
 {
+
 	// TODO remove page switches from this function
 	//	(it would be faster and no potential data loss)
 
@@ -74,7 +75,7 @@ void vesa_draw(char * rect, int sx, int sy, int w, int h)
 			}
 		}
 	}
-}
+}*/
 
 gr_info * vesa_get_info(void)
 {

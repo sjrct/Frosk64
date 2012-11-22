@@ -127,7 +127,7 @@ int receive(kern_obj * from, int port, char * buf, ulong size)
 				d->u.portd.off += size;
 
 				if (d->u.portd.off >= 0x1000) {
-					free_pages((ulong)d->u.portd.addr, d->u.portd.off / 0x1000, KVIRT_PAGES);
+//					free_pages((ulong)d->u.portd.addr, d->u.portd.off / 0x1000, KVIRT_PAGES);
 					d->u.portd.off %= 0x1000;
 				}
 
