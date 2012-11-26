@@ -23,7 +23,7 @@ void kb_init(void)
 	register_int(IRQ0 + IRQ_KEYBOARD, (ulong)key_int, KERNEL_CS, 0x8E);
 	enable_irq(IRQ_KEYBOARD);
 
-
+	INB(a, 0x64);
 	while (a & 1) {
 		INB(a, 0x60);
 		INB(a, 0x64);

@@ -15,8 +15,6 @@ extern key_buf
 extern key_buf_bot
 extern key_buf_top
 
-extern fjfjf
-
 global key_int
 key_int:
 	push rax
