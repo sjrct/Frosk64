@@ -116,8 +116,10 @@ context_switch:
 	out 0x40, al
 	out 0x40, al
 
+	or qword [rsp + 16], 0x200
 	iretq
 .return_here:
+	cli
 
 	; restore callee-save registers
 	pop r15
@@ -130,6 +132,7 @@ context_switch:
 	pop rbx
 	RESTORE_SEG_SELS
 	POP_CALLER_REGS
+	or qword [rsp + 16], 0x200
 	iretq
 
 .return_early:

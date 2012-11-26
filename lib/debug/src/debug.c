@@ -1,9 +1,13 @@
 #include <frosk.h>
 
-void debug_line(const char * s) {
+void debug_string(const char * s) {
 	for(; *s != '\0'; s++) {
 		write_serial(*s);
 	}
+}
+
+void debug_line(const char * s) {
+	debug_string(s);
 	write_serial('\n');
 }
 
@@ -36,3 +40,10 @@ void debug_number(int num) {
 	s = itoa(num, s, 10);
 	debug_line(s);
 }
+
+void debug_hex(int num) {
+	char * s = "________________________________";
+	s = itoa(num, s, 16);
+	debug_string(s);
+}
+
