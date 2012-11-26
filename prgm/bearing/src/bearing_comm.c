@@ -66,21 +66,21 @@ void resize_func() {
 }
 
 bool check_event(event ev) {
-	return ev.type==KEY_DOWN;
+	return ev.u.keyboard.letter == 's';
 }
 
 void handle_events_func() {
 	event_list * events;
-	event_list * mine;
+	event_list * mine = NULL;
 	event_list * itr;
 	event_list * mine_itr;
 	event_list * prev = NULL;
 	expanse exp;
 	
-	events = get_events(expsys, ES_COMM_PORT);
+	events = get_events(expsys, EVENT_COMM_PORT);
 	
 	// Remove events that pertain to me
-	for(itr = events; itr != NULL; itr = itr->next != NULL ? itr->next : prev->next) {
+	for(itr = events; itr != NULL; itr = itr->next != NULL ? itr->next : prev == NULL ? NULL : prev->next) {
 		if(check_event(itr->event)) {
 			if(mine == NULL) {
 				mine = itr;
@@ -91,7 +91,7 @@ void handle_events_func() {
 			}
 			
 			if(prev == NULL) {
-				events = itr;
+				events = itr->next;
 			} else {
 				prev->next = itr->next;
 			}
@@ -101,7 +101,7 @@ void handle_events_func() {
 		}
 	}
 	
-	send_events(expsys, ES_COMM_PORT, events);
+	send_events(expsys, EVENT_COMM_PORT, events);
 	
 	for(itr = mine; itr != NULL; itr = itr->next){
 		if(itr->event.u.keyboard.letter == 's') {

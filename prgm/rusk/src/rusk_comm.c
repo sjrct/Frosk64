@@ -93,9 +93,30 @@ static void register_em_func(pid_t id) {
 }
 
 static void get_front_expanse_func(pid_t id) {
+	full_expanse * fexp;
 	expanse exp;
-	exp = get_front_expanse();
+	
+	fexp = get_front_expanse();
+	if(fexp != NULL) {
+		exp = fexp->exp;
+	} else {
+		exp.handle = -1;
+	}
 	send(id, ES_COMM_PORT, &exp, sizeof(expanse));
+}
+
+void handle_events(event_list* events) {
+	full_expanse * exp;
+	if(em) {
+		call_func(em, EM_HANDLE_EVENTS);
+		send_events(em, EVENT_COMM_PORT, events);
+		free(events);
+		events = get_events(em, EVENT_COMM_PORT);
+	}
+	exp = get_front_expanse();
+	if(exp != NULL) {
+		send_events(exp->pid, EVENT_COMM_PORT, events);
+	}
 }
 
 void serve(void) {
