@@ -20,6 +20,7 @@
 
 #include "cga_text.h"
 #include "vesa.h"
+#include "mouse.h"
 
 #define START_PRGM_MAX_SIZE 0x1000
 
@@ -49,6 +50,7 @@ void __attribute__ ((noreturn)) kmain()
 	init_idt();
 	init_tss();
 
+	init_mouse();
 	kb_init();
 	init_graphics();
 

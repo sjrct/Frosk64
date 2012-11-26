@@ -15,6 +15,8 @@ extern key_buf
 extern key_buf_bot
 extern key_buf_top
 
+extern fjfjf
+
 global key_int
 key_int:
 	push rax
@@ -22,31 +24,35 @@ key_int:
 	push rdx
 	push rdi
 
+.read_again:
 	in al, 0x60
 
-	mov edx, [key_buf_bot]
+	mov rcx, key_buf
+	xor rdx, rdx
+	mov edx, [key_buf_top]
+	add rcx, rdx
+	mov [rcx], al
+
 	inc edx
 	cmp edx, KEY_BUF_MAX_SIZE
 	jne .no_circle
 	xor edx, edx
 .no_circle:
+	mov [key_buf_top], edx
 
-	mov rcx, [key_buf]
-	xor rdi, rdi
-	mov edi, [key_buf_bot]
-	add rcx, rdi
-	mov [rcx], al
-	mov [key_buf_bot], edx
-
-	cmp edx, [key_buf_top]
+	cmp edx, [key_buf_bot]
 	jne .not_full
-	mov eax, [key_buf_top]
-	cmp eax, KEY_BUF_MAX_SIZE
+	inc edx
+	cmp edx, KEY_BUF_MAX_SIZE
 	jne .no_circle2
-	xor eax, eax
+	xor edx, edx
 .no_circle2:
-	mov [key_buf_top], eax
+	mov [key_buf_bot], edx
 .not_full:
+
+;	in al, 0x64
+;	test al, 1
+;	jnz .read_again
 
 	mov al, 0x20
 	out 0x20, al

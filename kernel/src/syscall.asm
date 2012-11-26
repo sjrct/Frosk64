@@ -19,7 +19,7 @@ init_syscalls:
 	mov rdi, SYSCALL_INT
 	mov rsi, syscall
 	mov rdx, KERNEL_CS
-	mov rcx, 0xEF
+	mov rcx, 0xEE
 	call register_int
 	ret
 
