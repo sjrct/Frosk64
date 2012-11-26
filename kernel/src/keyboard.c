@@ -44,8 +44,6 @@ int kb_read(char * buf, uint size)
 		}
 	}
 	
-	if (i == 0) return 0;
-	else return key_buf_top + 1;
 	return i;
 }
 
