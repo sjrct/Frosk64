@@ -34,6 +34,7 @@ void try_draw() {
 			if(itr->lbuf != NULL) {
 				free(itr->lbuf);
 			}
+//			resize_buffer(itr->expanse_buffer, itr->exp.width, itr->exp.height);
 			itr->lbuf = linear_buffer(itr->expanse_buffer);
 			itr->dirty_lbuf = false;
 		}
@@ -64,6 +65,13 @@ void update_partial(expanse_handle handle, pixel_buffer p, int x, int y) {
 		}
 	}
 	itr->dirty_lbuf = true;
+}
+
+void em_registered() {
+	full_expanse * itr;
+	for(itr = expanses; itr != NULL; itr = itr->next) {
+		em_init_expanse(itr->exp);
+	}
 }
 
 expanse add_expanse(const api_expanse* e) {
@@ -131,14 +139,15 @@ void remove_expanse(expanse_handle e) {
 }
 
 void update_expanse(expanse e) {
-	full_expanse* itr = expanses;
+	full_expanse* itr;
 	
-	if(itr == NULL) {
+	if(expanses == NULL) {
 		return;
 	}
 	
-	for(; itr->next != NULL; itr = itr->next) {
+	for(itr = expanses; itr != NULL; itr = itr->next) {
 		if(itr->exp.handle == e.handle) {
+			itr->dirty_lbuf = true;
 			itr->exp = e;
 			break;
 		}
@@ -168,4 +177,13 @@ void bring_expanse_to_front(expanse_handle e) {
 	
 		first->next = NULL;
 	}
+}
+
+expanse get_front_expanse() {
+	expanse exp;
+	if(expanses == NULL) {
+		exp.handle = -1;
+		return exp;
+	}
+	return expanses->exp;
 }
