@@ -73,8 +73,8 @@ void * malloc(size_t sz)
 		cur = cur->next;
 	} while (cur == hdr->next);
 	debug_line("MALLOC FAIL!");
-	debug_number(cur);
-	debug_number(hdr->next);
+	debug_number((long)cur);
+	debug_number((long)hdr->next);
 	return NULL;
 }
 

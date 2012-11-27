@@ -9,5 +9,6 @@
 
 void kb_init(void);
 int kb_read(char * buf, uint size);
+int kb_write(char * buf, uint size);
 
 #endif

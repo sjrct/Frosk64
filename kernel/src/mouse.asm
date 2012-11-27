@@ -43,7 +43,7 @@ mouse_func:
 	WAIT_READ
 	in al, 0x60
 	cmp al, 0xFA
-;	jne mouse_func
+	jne $
 	
 	ret
 	
@@ -62,72 +62,97 @@ clear_input:
 ; assembly portion of mouse initialization
 global init_mouse_asm
 init_mouse_asm:
+	; reset	
+	mov al, 0xD4
+	out 0x64, al
+
+	WAIT_WRITE
+	mov al, 0xff
+	out 0x60, al
+
 	; enable mouse port
 	mov al, 0xA8
 	out 0x64, al
 
 	; set enable irq12 bit, clear disable mouse clock bit
-;	mov al, 0x20
-;	out 0x64, al
-;	WAIT_READ
-;	in al, 0x60
+	mov al, 0x20
+	out 0x64, al
+	WAIT_READ
+	in al, 0x60
 	
-;	or al, 0x2
-;	and al, ~0x20
-;	mov cl, al
+	or al, 0x2
+	and al, ~0x20
+	mov cl, al
 	
-;	mov al, 0x60
-;	out 0x64, al
-;	WAIT_WRITE
-;	mov al, cl
-;	out 0x60, al
+	mov al, 0x60
+	out 0x64, al
+	WAIT_WRITE
+	mov al, cl
+	out 0x60, al
 	
-;	IO_WAIT
-;	call clear_input
+	IO_WAIT
+	call clear_input
 
 	; set defaults
-	mov cl, 0xF6
-	call mouse_func
+;	mov cl, 0xF6
+;	call mouse_func
 	
 	; enable mouse
 	mov cl, 0xF4
 	call mouse_func
 	
-	; set remote mode
-	mov cl, 0xF0
-	call mouse_func
 	ret
 	
 	
 ; get mouse position in remote system
-global get_mouse_pos
-get_mouse_pos:
-	mov cl, 0xEB
-	call mouse_func
+;global get_mouse_pos
+;get_mouse_pos:
+;	mov cl, 0xEB
+;	call mouse_func
 	
-	xor ah, ah
+;	xor ah, ah
 	
-	WAIT_READ
-	in al, 0x60 ; status
-	in al, 0x60 ; ignored
+;	WAIT_READ
+;	in al, 0x60 ; status
+;	in al, 0x60 ; ignored
 
-	in al, 0x60 ; x data
-	add [mousex], ax
-	in al, 0x60 ; ignored
+;	in al, 0x60 ; x data
+;	add [mousex], ax
+;	in al, 0x60 ; ignored
 
-	in al, 0x60 ; y data
-	add [mousey], ax
-	in al, 0x60 ; ignored
+;	in al, 0x60 ; y data
+;	add [mousey], ax
+;	in al, 0x60 ; ignored
 
-	in al, 0x60 ; z data
-	in al, 0x60 ; ignored
+;	in al, 0x60 ; z data
+;	in al, 0x60 ; ignored
 
-	mov eax, [mousex]
-	mov [rdi], eax
-	mov eax, [mousey]
-	mov [rsi], eax
+;	xor rcx, rcx
 
-	ret
+;	in al, 0x64
+;	test al, 0x1
+;	jz .no_data
+	
+;	in al, 0x60
+;	cmp 
+	
+;	in al, 0x60
+;	mov [mousex], al
+;	in al, 0x60
+;	add [mousey], eax
+	
+;	mov rcx, 1
+	
+;.no_data:
+
+;	mov eax, [mousex]
+;	mov [rdi], eax
+;	mov eax, [mousey]
+;	mov [rsi], eax
+	
+;	mov rax, rcx
+
+;	ret
 
 
 ; interrupt handler for IRQ12 (PS2 mouse int)

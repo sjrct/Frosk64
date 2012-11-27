@@ -32,9 +32,9 @@ typedef long pid_t;
 #define get_esys()          _syscall0_(12)
 #define unreg_esys()        _syscall0_(13)
 #define get_current_proc()  _syscall0_(14)
-#define get_mouse_pos(X,Y)  _syscall2_((ulong)(X), (ulong)(Y), 15)
+#define update_mouse(X,Y)   _syscall2_((ulong)(X), (ulong)(Y), 15)
 #define kb_read(B,S)        _syscall2_((ulong)(B),S,16)
-#define write_serial(X)      _syscall1_(X,17)
+#define write_serial(X)     _syscall1_(X,17)
 #define gr_fill(B,X,Y,W,H)  _syscall5_((long)(B), X, Y, W, H, 18)
 
 #endif
