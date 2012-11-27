@@ -24,14 +24,14 @@ void send_data(void * data, int size) {
 	send(expsys, ES_COMM_PORT, data, size);
 }
 void receive_data(void * data, int size) {
-	while(!receive(expsys, ES_COMM_PORT, data, size));
+	while(!poll(ES_COMM_PORT));
+	receive(expsys, ES_COMM_PORT, data, size);
 }
 
 bool register_em() {
 	bool res;
 	
 	while(!(expsys = get_esys()));
-	debug_line("Hello World!");
 	send_func(ES_REGISTER_EM);
 	receive_data(&res, sizeof(bool));
 	return res;
@@ -66,51 +66,73 @@ void resize_func() {
 }
 
 bool check_event(event ev) {
-	return ev.u.keyboard.letter == 's';
+	switch(ev.u.keyboard.letter) {
+		case 's':
+		case 'j':
+		case 'i':
+		case 'k':
+		case 'l':
+			return true;
+	}
+	return false;
 }
 
 void handle_events_func() {
 	event_list * events;
-	event_list * mine = NULL;
 	event_list * itr;
+	event_list * mine = NULL;
 	event_list * mine_itr;
-	event_list * prev = NULL;
+	event_list * new = NULL;
+	event_list * new_itr;
 	expanse exp;
-	
 	events = get_events(expsys, EVENT_COMM_PORT);
-	
 	// Remove events that pertain to me
-	for(itr = events; itr != NULL; itr = itr->next != NULL ? itr->next : prev == NULL ? NULL : prev->next) {
+	for(itr = events; itr != NULL; itr = itr->next) {
 		if(check_event(itr->event)) {
 			if(mine == NULL) {
-				mine = itr;
+				mine = malloc(sizeof(event_list));
 				mine_itr = mine;
 			} else {
-				mine_itr->next = itr;
+				mine_itr->next = malloc(sizeof(event_list));
 				mine_itr = mine_itr->next;
 			}
-			
-			if(prev == NULL) {
-				events = itr->next;
-			} else {
-				prev->next = itr->next;
-			}
-			itr->next = NULL;
+			mine_itr->event = itr->event;
 		} else {
-			prev = itr;
+			if(new == NULL) {
+				new = malloc(sizeof(event_list));
+				new_itr = new;
+			} else {
+				new_itr->next = malloc(sizeof(event_list));
+				new_itr = new_itr->next;
+			}
+			new_itr->event = itr->event;
 		}
 	}
 	
-	send_events(expsys, EVENT_COMM_PORT, events);
-	
+	send_events(expsys, EVENT_COMM_PORT, new);
 	for(itr = mine; itr != NULL; itr = itr->next){
-		if(itr->event.u.keyboard.letter == 's') {
-			send_func(ES_GET_FRONT_EXPANSE);
-			receive_data(&exp, sizeof(expanse));
-			exp.visible = !exp.visible;
-			update_expanse(exp);
+		send_func(ES_GET_FRONT_EXPANSE);
+		receive_data(&exp, sizeof(expanse));
+		switch(itr->event.u.keyboard.letter) {
+			case 's':
+				exp.visible = !exp.visible;
+				break;
+			case 'j':
+				exp.x-=3;
+				break;
+			case 'l':
+				exp.x+=3;
+				break;
+			case 'k':
+				exp.y-=3;
+				break;
+			case 'i':
+				exp.y+=3;
+				break;
 		}
+		update_expanse(exp);
 	}
+	send_func(ES_REENABLE_EVENTS);
 }
 
 void serve(void) {

@@ -23,6 +23,8 @@ static void update_expanse_func(pid_t);
 static void register_em_func(pid_t);
 // expanse get_front_expanse()
 static void get_front_expanse_func(pid_t);
+// void reenable_events()
+static void reenable_events_func(pid_t);
 
 static void (*funcs[])(pid_t) = {
 	create_expanse_func,
@@ -31,7 +33,13 @@ static void (*funcs[])(pid_t) = {
 	update_expanse_func,
 	register_em_func,
 	get_front_expanse_func,
+	reenable_events_func,
 };
+
+void receive_data(pid_t pid, int port, void * data, int size) {
+	while(!poll(port));
+	receive(pid, port, data, size);
+}
 
 void call_func(pid_t id, int func) {
 	send(id, ES_COMM_PORT, &func, sizeof(int));
@@ -41,10 +49,9 @@ static void create_expanse_func(pid_t id) {
 	expanse e;
 	api_expanse exp;
 
-	while (!receive(id, ES_COMM_PORT, &exp, sizeof(api_expanse)));
+	receive_data(id, ES_COMM_PORT, &exp, sizeof(api_expanse));
 	e = add_expanse(&exp, id);
 	
-	debug_number(em);
 	if(em) {
 		em_init_expanse(e);
 	}
@@ -60,7 +67,7 @@ void em_init_expanse(expanse e) {
 static void remove_expanse_func(pid_t id) {
 	expanse_handle * handle;
 
-	while (!receive(id, ES_COMM_PORT, &handle, sizeof(handle)));
+	receive_data(id, ES_COMM_PORT, &handle, sizeof(handle));
 	remove_expanse(*handle);
 }
 
@@ -68,9 +75,9 @@ static void update_partial_expanse_func(pid_t id) {
 	pixel_buffer p;
 	int x, y;
 	expanse_handle handle;
-	while(!receive(id, ES_COMM_PORT, &handle, sizeof(expanse_handle)));
-	while(!receive(id, ES_COMM_PORT, &x, sizeof(int)));
-	while(!receive(id, ES_COMM_PORT, &y, sizeof(int)));
+	receive_data(id, ES_COMM_PORT, &handle, sizeof(expanse_handle));
+	receive_data(id, ES_COMM_PORT, &x, sizeof(int));
+	receive_data(id, ES_COMM_PORT, &y, sizeof(int));
 	p = receive_buffer(id, ES_COMM_PORT);
 
 	update_partial(handle, p, x, y);
@@ -78,7 +85,7 @@ static void update_partial_expanse_func(pid_t id) {
 
 static void update_expanse_func(pid_t id) {
 	expanse e;
-	while(!receive(id, ES_COMM_PORT, &e, sizeof(expanse)));
+	receive_data(id, ES_COMM_PORT, &e, sizeof(expanse));
 	update_expanse(e);
 }
 
@@ -95,7 +102,6 @@ static void register_em_func(pid_t id) {
 static void get_front_expanse_func(pid_t id) {
 	full_expanse * fexp;
 	expanse exp;
-	
 	fexp = get_front_expanse();
 	if(fexp != NULL) {
 		exp = fexp->exp;
@@ -107,6 +113,7 @@ static void get_front_expanse_func(pid_t id) {
 
 void handle_events(event_list* events) {
 	full_expanse * exp;
+	events_allowed = false;
 	if(em) {
 		call_func(em, EM_HANDLE_EVENTS);
 		send_events(em, EVENT_COMM_PORT, events);
@@ -120,6 +127,9 @@ void handle_events(event_list* events) {
 		send(exp->pid, EVENT_COMM_PORT, exp->exp.handle, sizeof(expanse_handle));
 		send_events(exp->pid, EVENT_COMM_PORT, events);
 	}
+}
+static void reenable_events_func(pid_t pid) {
+	events_allowed = true;
 }
 
 void serve(void) {

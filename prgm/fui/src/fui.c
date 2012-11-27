@@ -29,7 +29,7 @@ bool handler_test(shiny_thingy * thingy, event ev) {
 		set_shiny_buffer(SHINY_BUFFER(buffer), buf);
 		draw(buffer);
 	}
-	debug_line("asdf");
+	write_serial(ev.u.keyboard.letter);
 	return false;
 }
 

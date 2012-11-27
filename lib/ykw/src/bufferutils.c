@@ -27,32 +27,32 @@ pixel_buffer create_buffer(int width, int height, pixel fill)
 	return pb;
 }
 
-void resize_buffer(pixel_buffer pb, int new_width, int new_height) {
+void resize_buffer(pixel_buffer * pb, int new_width, int new_height) {
 	int i;
 	
-	if (new_width < pb.width) {
+	if (new_width < pb->width) {
 		for (i = 0; i < new_width; i++) {
-			pb.buffer[i] = realloc(pb.buffer[i], new_height * sizeof(pixel));
+			pb->buffer[i] = realloc(pb->buffer[i], new_height * sizeof(pixel));
 		}
 		
-		for (; i < pb.width; i++) {
-			free(pb.buffer[i]);
+		for (; i < pb->width; i++) {
+			free(pb->buffer[i]);
 		}
 	} else {
-		for (i = 0; i < pb.width; i++) {
-			pb.buffer[i] = realloc(pb.buffer[i], new_height * sizeof(pixel));
+		for (i = 0; i < pb->width; i++) {
+			pb->buffer[i] = realloc(pb->buffer[i], new_height * sizeof(pixel));
 		}
 		
-		if (new_width > pb.width) {
-			pb.buffer = realloc(pb.buffer, new_width * sizeof(pixel*));
+		if (new_width > pb->width) {
+			pb->buffer = realloc(pb->buffer, new_width * sizeof(pixel*));
 			for (; i < new_width; i++) {
-				pb.buffer[i] = malloc(new_height * sizeof(pixel));
+				pb->buffer[i] = malloc(new_height * sizeof(pixel));
 			}
 		}
 	}
 
-	pb.width = new_width;
-	pb.height = new_height;
+	pb->width = new_width;
+	pb->height = new_height;
 }
 
 void free_buffer(pixel_buffer buff) {

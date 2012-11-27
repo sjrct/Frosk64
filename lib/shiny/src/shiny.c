@@ -35,7 +35,6 @@ event_handler_list * eh_list;
 expanse_list * exp_list;
 
 pid_t get_esyspid() {
-	int i;
 	while(!get_esys());
 	return get_esys();
 }
@@ -148,14 +147,15 @@ void register_event_handler(shiny_thingy * thingy, event_type type, bool (*handl
 }
 
 bool in_range(event ev, shiny_thingy * thingy) {
-	return true; /*
 	shiny_loc loc = thingy->loc;
 	shiny_size size = thingy->size;
 	return 
-		loc.x <= ev.x &&
-		loc.y <= ev.y &&
-		loc.x + size.width  >= ev.x &&
-		loc.y + size.height >= ev.y;*/
+		ev.type == KEY_DOWN || 
+		(ev.type == MOUSE_DOWN && 
+		loc.x <= ev.u.mouse.x &&
+		loc.y <= ev.u.mouse.y &&
+		loc.x + size.width  >= ev.u.mouse.x &&
+		loc.y + size.height >= ev.u.mouse.y);
 }
 
 void shiny_main_loop() {

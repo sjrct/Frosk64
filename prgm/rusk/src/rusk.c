@@ -17,8 +17,7 @@ void try_draw() {
 	expanse * exp;
 	full_expanse * itr;
 	pixel p = { 0, 0, 0};
-
-
+	
 	for(itr = expanses; itr != NULL; itr = itr->next) {
 		exp = &itr->exp;
 		if(!exp->visible) continue;
@@ -26,12 +25,12 @@ void try_draw() {
 			if(itr->lbuf != NULL) {
 				free(itr->lbuf);
 			}
-//			resize_buffer(itr->expanse_buffer, itr->exp.width, itr->exp.height);
+//			resize_buffer(&itr->expanse_buffer, itr->exp.width, itr->exp.height);
 			itr->lbuf = linear_buffer(itr->expanse_buffer);
 			itr->dirty_lbuf = false;
 		}
-		itr->exp.x+=1;
-		gr_fill(&p, (exp->x) - 1, exp->y, 1, exp->height);
+//		itr->exp.x+=1;
+//		gr_fill(&p, (exp->x) - 1, exp->y, 1, exp->height);
 		gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
 	}
 }
@@ -46,6 +45,7 @@ void print_event(event e) {
 #define CTRL 0x1d
 #define ALT 0x38
 #define UP 0x80
+bool events_allowed = true;
 void kb_events(){
 	uchar c[32];
 	static char keys[0x36] = "\n\n1234567890-=\n\tqwertyuiop[]\n_asdfghjkl;'`\\_zxcvbnm,./";
@@ -54,6 +54,8 @@ void kb_events(){
 	static bool alt;
 	int count, i;
 	event event;
+	
+	if (!events_allowed) return;
 	
 	event_list * list = NULL;
 	event_list * itr = NULL;
@@ -114,7 +116,6 @@ int main() {
 	while(1) {
 		serve();
 		kb_events();
-		//poll_keyb();
 		//poll_mouse();
 		try_draw();
 	}

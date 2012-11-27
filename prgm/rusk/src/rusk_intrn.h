@@ -35,5 +35,6 @@ void em_registered();
 void em_init_expanse(expanse e);
 
 pid_t em;
+bool events_allowed;
 
 #endif
