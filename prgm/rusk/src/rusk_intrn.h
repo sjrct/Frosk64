@@ -23,12 +23,13 @@ typedef struct full_expanse {
 void serve(void);
 
 void register_wm(pid_t expanse_manager);
-expanse add_expanse(const api_expanse*);
+expanse add_expanse(const api_expanse*, pid_t);
 void remove_expanse(expanse_handle w);
 void update_partial(expanse_handle handle, pixel_buffer p, int x, int y);
 void update_expanse(expanse);
 full_expanse * get_front_expanse();
 void handle_events(event_list*);
+void adjust_events(event_list*);
 
 void em_registered();
 void em_init_expanse(expanse e);

@@ -16,6 +16,7 @@ static full_expanse * expanses;
 void try_draw() {
 	expanse * exp;
 	full_expanse * itr;
+	pixel p = { 0, 0, 0};
 
 
 	for(itr = expanses; itr != NULL; itr = itr->next) {
@@ -29,7 +30,8 @@ void try_draw() {
 			itr->lbuf = linear_buffer(itr->expanse_buffer);
 			itr->dirty_lbuf = false;
 		}
-		itr->exp.x++;
+		itr->exp.x+=1;
+		gr_fill(&p, (exp->x) - 1, exp->y, 1, exp->height);
 		gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
 	}
 }
@@ -139,7 +141,7 @@ void em_registered() {
 	}
 }
 
-expanse add_expanse(const api_expanse* e) {
+expanse add_expanse(const api_expanse* e, pid_t pid) {
 	expanse exp;
 	pixel pxl = { 0, 128, 0 };
 
@@ -162,6 +164,7 @@ expanse add_expanse(const api_expanse* e) {
 	new_e->dirty_lbuf = true;
 	new_e->lbuf = NULL;	
 	new_e->exp.handle = (expanse_handle)e;
+	new_e->pid = pid;
 	
 	if (itr == NULL) {
 		expanses = new_e;
@@ -220,30 +223,36 @@ void update_expanse(expanse e) {
 }
 
 void bring_expanse_to_front(expanse_handle e) {
-	full_expanse* itr = expanses;
+	full_expanse* itr;
 	full_expanse* first;
 	
-	if(itr == NULL || itr->next == NULL) {
+	if(expanses == NULL || expanses->next == NULL) {
 		return;
 	}
 	
-	while(itr->next != NULL && itr->next->exp.handle != e) {
-		itr = itr->next;
-	}
+	for(itr = expanses; itr->next != NULL && itr->next->exp.handle != e; itr = itr->next);
 	
 	if(itr->next != NULL) {
 		first = itr->next;
-		itr->next = first->next;
-		
-		while(itr->next != NULL) {
-			itr = itr->next;
-		}
+		for(itr->next = first->next; itr->next != NULL; itr = itr->next);
 		itr->next = first;
-	
 		first->next = NULL;
 	}
 }
 
 full_expanse * get_front_expanse() {
 	return expanses;
+}
+void adjust_events(event_list* elist) {
+	event event;
+	full_expanse * fexp = expanses;
+	
+	for(; elist != NULL; elist = elist->next) {
+		event = elist->event;
+		if(event.type == MOUSE_DOWN || event.type == MOUSE_UP) {
+			//TODO account for border
+			event.u.mouse.x -= fexp->exp.x;
+			event.u.mouse.y -= fexp->exp.y;
+		}
+	}
 }

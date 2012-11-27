@@ -42,7 +42,7 @@ static void create_expanse_func(pid_t id) {
 	api_expanse exp;
 
 	while (!receive(id, ES_COMM_PORT, &exp, sizeof(api_expanse)));
-	e = add_expanse(&exp);
+	e = add_expanse(&exp, id);
 	
 	debug_number(em);
 	if(em) {
@@ -115,6 +115,9 @@ void handle_events(event_list* events) {
 	}
 	exp = get_front_expanse();
 	if(exp != NULL) {
+		// the following events have been modified from their original version to fit your expanse
+		adjust_events(events);
+		send(exp->pid, EVENT_COMM_PORT, exp->exp.handle, sizeof(expanse_handle));
 		send_events(exp->pid, EVENT_COMM_PORT, events);
 	}
 }

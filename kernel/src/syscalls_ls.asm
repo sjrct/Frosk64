@@ -22,6 +22,7 @@ extern get_current_proc
 extern get_mouse_pos
 extern kb_read
 extern write_serial
+extern vesa_fill
 
 global syscalls_ls
 syscalls_ls:
@@ -43,5 +44,6 @@ syscalls_ls:
 	dq get_mouse_pos ; 15
 	dq kb_read
 	dq write_serial
+	dq vesa_fill
 
 syscalls_count: equ ($ - syscalls_ls) / 8

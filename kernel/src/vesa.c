@@ -9,6 +9,7 @@
 #include "inline_asm.h"
 #include "paging.h"
 #include "pagemgr.h"
+#include <bufferutils.h>
 
 #define GR_ADDR_REG 0x3CE
 
@@ -44,6 +45,23 @@ void vesa_draw(char * rect, int sx, int sy, int w, int h)
 			for (k = 0; k < mx; k++) {
 				ATB(addr + k) = rect[i++];
 			}
+		}
+	}
+}
+
+void vesa_fill(pixel * c, int sx, int sy, int w, int h)
+{
+	ulong addr;
+	int x, y;
+	int mx = cur_vmi->bpp / 8;
+	int my = cur_vmi->ppsl;
+		
+	for (y = sy; y < sy + h; y++) {
+		for (x = sx; x < sx + w; x++) {
+			addr = virt_addr + x * mx + y * my;
+			ATB(addr + 0) = c->r;
+			ATB(addr + 1) = c->g;
+			ATB(addr + 2) = c->b;
 		}
 	}
 }
