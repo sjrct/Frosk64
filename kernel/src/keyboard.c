@@ -51,15 +51,14 @@ int kb_write(char * buf, uint size)
 {
 	uint i, t;
 	
-	for (i = 0, t = key_buf_bot; i < size; i++) {
+	for (i = 0, t = key_buf_top; i < size; i++) {		
 		t++;
 		if (t == KEY_BUF_MAX_SIZE) t = 0;
-		
-		if (t == key_buf_top) break;
-		
-		key_buf[t] = buf[i];
-		key_buf_bot = t;
+		if (t == key_buf_bot) break;
+
+		key_buf[key_buf_top] = buf[i];
+		key_buf_top = t;
 	}
 
-	return size - i;
+	return i;
 }

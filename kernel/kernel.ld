@@ -10,6 +10,7 @@ ENTRY(kmain)
 SECTIONS
 {
 	. = 0xFFFF80000000F000;
+	
 	.text :
 	{
 		* (.text)
