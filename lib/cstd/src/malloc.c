@@ -109,9 +109,9 @@ void * realloc(void * old, size_t sz)
 
 void free(void * ptr)
 {
-	return;
-	debug_line("free: ");
-	debug_number(ptr);
+//	return;
+//	debug_line("free: ");
+//	debug_number(ptr);
 	header * cur, * prv;
 	header * ph;
 	
@@ -127,7 +127,7 @@ void free(void * ptr)
 		cur = hdr->next;
 		
 		do {
-			if ((char*)(cur + 1) + cur->size == (char*)ptr) {
+			if ((char*)(cur + 1) + cur->size == (char*)ph) {
 				cur->size += ph->size + sizeof(header);
 				return;
 			}
@@ -151,5 +151,5 @@ void free(void * ptr)
 		ph->next = hdr->next;
 		hdr->next = ph;
 	}
-	debug_line("freedone");
+//	debug_line("freedone");
 }
