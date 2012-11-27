@@ -1,6 +1,8 @@
 #include "bearing_intrn.h"
+#include <debug.h>
 
 int main() {
+	debug_line("Hello World!");
 	if(!register_em()) {
 		return 1;
 	}	

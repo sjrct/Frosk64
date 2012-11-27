@@ -11,6 +11,9 @@ d:[name = /, read = owner, write = owner, contents = {
 		d:[name = rusk, contents = {
 			f:[name = rusk, actual = prgm/rusk/rusk]
 		}]
+		d:[name = bearing, contents = {
+			f:[name = bearing, actual = prgm/bearing/bearing]
+		}]
 	}]
 
 	d:[name = user, contents = {

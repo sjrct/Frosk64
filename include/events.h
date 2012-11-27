@@ -9,6 +9,8 @@
 
 #include <frosk.h>
 
+#define EVENT_COMM_PORT 0x11
+
 typedef enum event_type{
 	MOUSE_OVER = 0,
 	CLICK,
@@ -26,7 +28,9 @@ typedef struct event {
 	union {
 		struct {
 			char letter;
-			int modifiers; //TODO ENUM?
+			bool shift;
+			bool ctrl;
+			bool alt;
 		} keyboard;
 		struct {
 			int x, y;

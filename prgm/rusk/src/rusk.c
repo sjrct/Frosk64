@@ -11,15 +11,6 @@
 #include "rusk_intrn.h"
 #include <debug.h>
 
-typedef struct full_expanse {
-	expanse exp;
-	pixel_buffer expanse_buffer;
-	pid_t pid;
-	char * lbuf;
-	bool dirty_lbuf;
-	struct full_expanse * next;
-} full_expanse;
-
 static full_expanse * expanses;
 
 void try_draw() {
@@ -34,18 +25,93 @@ void try_draw() {
 			if(itr->lbuf != NULL) {
 				free(itr->lbuf);
 			}
+//			resize_buffer(itr->expanse_buffer, itr->exp.width, itr->exp.height);
 			itr->lbuf = linear_buffer(itr->expanse_buffer);
 			itr->dirty_lbuf = false;
 		}
-//		itr->exp.x++;
+		itr->exp.x++;
 		gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
+	}
+}
+
+void print_event(event e) {
+	write_serial(e.u.keyboard.letter);
+	write_serial('\n');
+	debug_number(e.u.keyboard.shift);
+}
+
+#define SHIFT 0x2a
+#define CTRL 0x1d
+#define ALT 0x38
+#define UP 0x80
+void kb_events(){
+	uchar c[32];
+	static char keys[0x36] = "\n\n1234567890-=\n\tqwertyuiop[]\n_asdfghjkl;'`\\_zxcvbnm,./";
+	static bool shift;
+	static bool ctrl;
+	static bool alt;
+	int count, i;
+	event event;
+	
+	event_list * list = NULL;
+	event_list * itr = NULL;
+	
+	count = kb_read(c,32);
+	
+	for(i = 0; i < count; i++) {
+		switch(c[i]) {
+			case SHIFT:
+				shift = true;
+				continue;
+			case SHIFT + UP:
+				shift = false;
+				continue;
+			case CTRL:
+				ctrl = true;
+				continue;
+			case CTRL + UP:
+				ctrl = true;
+				continue;
+			case ALT:
+				alt = true;
+				continue;
+			case ALT + UP:
+				alt = true;
+				continue;
+		}
+		if(c[i] <= 0x35 || c[i] == 0x39) {
+			if(c[i] == 0x39) {
+				event.u.keyboard.letter = ' ';
+			} else {		
+				event.u.keyboard.letter = keys[c[i]];
+			}
+			event.type = KEY_DOWN;
+			event.u.keyboard.shift = shift;
+			event.u.keyboard.ctrl = ctrl;
+			event.u.keyboard.alt = alt;
+			if(list == NULL) {
+				list = malloc(sizeof(event_list));
+				itr = list;
+			} else {
+				itr->next = malloc(sizeof(event_list));
+				itr = itr->next;
+			}
+			itr->event = event;
+//			print_event(event);
+		}
+	}
+	
+	if(list != NULL) {
+		handle_events(list);
 	}
 }
 
 int main() {
 	reg_esys();
+	
 	while(1) {
 		serve();
+		kb_events();
 		//poll_keyb();
 		//poll_mouse();
 		try_draw();
@@ -64,6 +130,13 @@ void update_partial(expanse_handle handle, pixel_buffer p, int x, int y) {
 		}
 	}
 	itr->dirty_lbuf = true;
+}
+
+void em_registered() {
+	full_expanse * itr;
+	for(itr = expanses; itr != NULL; itr = itr->next) {
+		em_init_expanse(itr->exp);
+	}
 }
 
 expanse add_expanse(const api_expanse* e) {
@@ -131,14 +204,15 @@ void remove_expanse(expanse_handle e) {
 }
 
 void update_expanse(expanse e) {
-	full_expanse* itr = expanses;
+	full_expanse* itr;
 	
-	if(itr == NULL) {
+	if(expanses == NULL) {
 		return;
 	}
 	
-	for(; itr->next != NULL; itr = itr->next) {
+	for(itr = expanses; itr != NULL; itr = itr->next) {
 		if(itr->exp.handle == e.handle) {
+			itr->dirty_lbuf = true;
 			itr->exp = e;
 			break;
 		}
@@ -168,4 +242,8 @@ void bring_expanse_to_front(expanse_handle e) {
 	
 		first->next = NULL;
 	}
+}
+
+full_expanse * get_front_expanse() {
+	return expanses;
 }
