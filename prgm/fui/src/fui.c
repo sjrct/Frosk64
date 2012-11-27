@@ -8,6 +8,7 @@
 #include <frosk.h>
 #include <shiny/shiny.h>
 #include <stdlib.h>
+#include "debug.h"
 
 #define SIZE 37
 

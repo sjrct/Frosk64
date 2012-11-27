@@ -35,7 +35,6 @@ event_handler_list * eh_list;
 expanse_list * exp_list;
 
 pid_t get_esyspid() {
-	int i;
 	while(!get_esys());
 	return get_esys();
 }
