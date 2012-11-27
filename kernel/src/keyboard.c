@@ -36,9 +36,9 @@ int kb_read(char * buf, uint size)
 
 	for (i = 0; i < size; i++) {
 		if (key_buf_top != key_buf_bot) {
-			key_buf_top--;
-			if (key_buf_top == -1) key_buf_top = KEY_BUF_MAX_SIZE - 1;
-			buf[i] = key_buf[key_buf_top];
+			buf[i] = key_buf[key_buf_bot];
+			key_buf_bot++;
+			if (key_buf_bot == KEY_BUF_MAX_SIZE) key_buf_bot = 0;
 		} else {
 			break;
 		}
