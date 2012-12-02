@@ -8,7 +8,7 @@ static pid_t expsys;
 void init_expanse_func();
 // void resize_expanse(expanse, handle, width, height)
 void resize_func();
-// event_list handle_events(event_list)
+// event_list handle_events(event_list, expanse front)
 void handle_events_func();
 
 static void (*funcs[])() = {
@@ -65,14 +65,35 @@ void resize_func() {
 	resize_expanse(exp, width, height);
 }
 
-bool check_event(event ev) {
-	switch(ev.u.keyboard.letter) {
-		case 's':
-		case 'j':
-		case 'i':
-		case 'k':
-		case 'l':
-			return true;
+static bool mouse_down;
+
+bool check_event(event ev, expanse exp) {
+	switch(ev.type) {
+		case KEY_DOWN:
+			switch(ev.u.keyboard.letter) {
+				case 's':
+				case 'j':
+				case 'i':
+				case 'k':
+				case 'l':
+					return true;
+			}
+		break;
+		case MOUSE_DOWN:
+			if (ev.u.mouse.x >= exp.x && ev.u.mouse.x <= exp.x + exp.width &&
+				ev.u.mouse.y >= exp.y && ev.u.mouse.y <= exp.y + 10) { //TODO FIX TO BORDER
+				mouse_down = true;
+				return true;
+			}
+		break;
+		case MOUSE_UP:
+			if(mouse_down) {
+				mouse_down = false;
+				return true;
+			}
+		break;
+		default:
+			return false;
 	}
 	return false;
 }
@@ -84,11 +105,14 @@ void handle_events_func() {
 	event_list * mine_itr;
 	event_list * new = NULL;
 	event_list * new_itr;
+	int mdx, mdy;
 	expanse exp;
 	events = get_events(expsys, EVENT_COMM_PORT);
+	receive(expsys, EVENT_COMM_PORT, &exp, sizeof(expanse));
+	
 	// Remove events that pertain to me
 	for(itr = events; itr != NULL; itr = itr->next) {
-		if(check_event(itr->event)) {
+		if(check_event(itr->event, exp)) {
 			if(mine == NULL) {
 				mine = malloc(sizeof(event_list));
 				mine_itr = mine;
@@ -111,24 +135,36 @@ void handle_events_func() {
 	
 	send_events(expsys, EVENT_COMM_PORT, new);
 	
-	send_func(ES_GET_FRONT_EXPANSE);
-	receive_data(&exp, sizeof(expanse));
 	for(itr = mine; itr != NULL; itr = itr->next){
-		switch(itr->event.u.keyboard.letter) {
-			case 's':
-				exp.visible = !exp.visible;
+		switch(itr->event.type) {
+			case KEY_DOWN:
+				switch(itr->event.u.keyboard.letter) {
+					case 's':
+						exp.visible = !exp.visible;
+						break;
+					case 'j':
+						exp.x-=3;
+						break;
+					case 'l':
+						exp.x+=3;
+						break;
+					case 'k':
+						exp.y+=3;
+						break;
+					case 'i':
+						exp.y-=3;
+						break;
+				}
 				break;
-			case 'j':
-				exp.x-=3;
+			case MOUSE_DOWN:
+				mdx = itr->event.u.mouse.x;
+				mdy = itr->event.u.mouse.y;
 				break;
-			case 'l':
-				exp.x+=3;
+			case MOUSE_UP:
+				exp.x += itr->event.u.mouse.x - mdx;
+				exp.y += itr->event.u.mouse.y - mdy;
 				break;
-			case 'k':
-				exp.y+=3;
-				break;
-			case 'i':
-				exp.y-=3;
+			default:
 				break;
 		}
 	}

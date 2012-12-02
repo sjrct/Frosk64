@@ -55,7 +55,7 @@ long get_mouse_pos(int * x, int * y)
 		INB(my, 0x60);
 		
 		mousex += (int)mx;
-		mousey += (int)my;
+		mousey -= (int)my;
 
 		for (i = 0; i <= 2; i++) {
 			mask = 1 << i;

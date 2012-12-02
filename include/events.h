@@ -11,10 +11,8 @@
 
 #define EVENT_COMM_PORT 0x11
 
-typedef enum event_type{
-	MOUSE_OVER = 0,
-	CLICK,
-	DBL_CLICK,
+typedef enum event_type {
+	MOUSE_POS,
 	MOUSE_DOWN,
 	MOUSE_UP,
 	KEY_DOWN,

@@ -17,6 +17,10 @@ long _syscall5_(long, long, long, long, long, long);
 typedef long handle_t;
 typedef long pid_t;
 
+#define LEFT_MOUSE 0x70
+#define RIGHT_MOUSE 0x71
+#define MIDDLE_MOUSE 0x72
+
 #define driver_call(X,Y,Z)  _syscall3_(X, Y, (long)(Z), 0)
 #define exec_fbe(X,Y,Z,T,V) _syscall5_((long)(X), Y, (long)(Z), T, V, 1)
 #define fs_aquire(X, Y, Z)  (handle_t)_syscall3_((long)(X), Y, Z, 2)

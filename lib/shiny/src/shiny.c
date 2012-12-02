@@ -33,6 +33,8 @@ typedef struct event_handler_list {
 
 event_handler_list * eh_list;
 expanse_list * exp_list;
+shiny_thingy * down_thingy = NULL;
+shiny_thingy * selected = NULL;
 
 pid_t get_esyspid() {
 	while(!get_esys());
@@ -149,13 +151,40 @@ void register_event_handler(shiny_thingy * thingy, event_type type, bool (*handl
 bool in_range(event ev, shiny_thingy * thingy) {
 	shiny_loc loc = thingy->loc;
 	shiny_size size = thingy->size;
-	return 
-		ev.type == KEY_DOWN || 
-		(ev.type == MOUSE_DOWN && 
-		loc.x <= ev.u.mouse.x &&
-		loc.y <= ev.u.mouse.y &&
-		loc.x + size.width  >= ev.u.mouse.x &&
-		loc.y + size.height >= ev.u.mouse.y);
+	switch(ev.type) {
+		case KEY_DOWN:
+		case KEY_UP:
+			return thingy == selected;
+		break;
+		
+		case MOUSE_DOWN:
+			if (loc.x <= ev.u.mouse.x &&
+				loc.y <= ev.u.mouse.y &&
+				loc.x + size.width  >= ev.u.mouse.x &&
+				loc.y + size.height >= ev.u.mouse.y) {
+				down_thingy = thingy;
+				return true;
+			}
+		break;
+		
+		case MOUSE_UP:
+			if(down_thingy == thingy) {
+				//Still in range
+				if (loc.x <= ev.u.mouse.x && 
+					loc.y <= ev.u.mouse.y &&
+					loc.x + size.width  >= ev.u.mouse.x &&
+					loc.y + size.height >= ev.u.mouse.y) {
+					selected = thingy;
+					return true;
+				}
+			}
+			down_thingy = NULL;
+		break;
+		
+		default :
+			return false;
+	}
+	return false;
 }
 
 void shiny_main_loop() {
@@ -193,8 +222,8 @@ void shiny_main_loop() {
 					event = el_itr->event;
 					
 					if (thingy->loc.expanse_handle == itr->handle 	&&	// Same expanse
-						event.type == handler.type					&& 	// Same type
 						in_range(event, thingy)						&&	// Same location
+						event.type == handler.type					&& 	// Same type
 						handler.handler_func(thingy, event)) {			// Event was handled
 							break;
 					}

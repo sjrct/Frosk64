@@ -114,13 +114,14 @@ static void get_front_expanse_func(pid_t id) {
 void handle_events(event_list* events) {
 	full_expanse * exp;
 	events_allowed = false;
+	exp = get_front_expanse();
 	if(em) {
 		call_func(em, EM_HANDLE_EVENTS);
 		send_events(em, EVENT_COMM_PORT, events);
+		send(em, EVENT_COMM_PORT, &exp->exp, sizeof(expanse));
 		free_event_list(events);
 		events = get_events(em, EVENT_COMM_PORT);
 	}
-	exp = get_front_expanse();
 	if(exp != NULL) {
 		// the following events have been modified from their original version to fit your expanse
 		adjust_events(events);

@@ -12,11 +12,13 @@
 #include <debug.h>
 
 static full_expanse * expanses;
+static int mx;
+static int my;
+void draw_mouse(int x, int y);
 
 void try_draw() {
 	expanse * exp;
 	full_expanse * itr;
-//	pixel p = { 0, 0, 0};
 	
 	for(itr = expanses; itr != NULL; itr = itr->next) {
 		exp = &itr->exp;
@@ -29,12 +31,26 @@ void try_draw() {
 			itr->lbuf = linear_buffer(itr->expanse_buffer);
 			itr->dirty_lbuf = false;
 		}
-//		itr->exp.x+=1;
-//		gr_fill(&p, (exp->x) - 1, exp->y, 1, exp->height);
 		gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
 	}
+	draw_mouse(mx,my);
 }
-
+void draw_mouse(int x, int y) {
+	static int px = -1, py = -1;
+	pixel p = { 255, 255, 255};
+	pixel b = { 0, 0, 0};
+	
+	if (px != -1 && py != -1 && ( px != x || py != y)) {
+		gr_fill(&b, px-5, py, 10, 1);
+		gr_fill(&b, px, py-5, 1, 10);		
+	}
+	
+	gr_fill(&p, x-5, y, 10, 1);
+	gr_fill(&p, x, y-5, 1, 10);
+	
+	px = x;
+	py = y;
+}
 void print_event(event e) {
 	write_serial('*');
 	write_serial(e.u.keyboard.letter);
@@ -42,13 +58,24 @@ void print_event(event e) {
 //	debug_number(e.u.keyboard.shift);
 }
 
+void add_event(event_list ** list, event_list ** itr, event event) {	
+	if(*list == NULL) {
+		*list = malloc(sizeof(event_list));
+		*itr = *list;
+	} else {
+		(*itr)->next = malloc(sizeof(event_list));
+		*itr = (*itr)->next;
+	}
+	(*itr)->event = event;
+}
+
 #define SHIFT 0x2a
 #define CTRL 0x1d
 #define ALT 0x38
 #define UP 0x80
 bool events_allowed = true;
-void kb_events(){
-	uchar c[32];
+void process_events(){
+	uchar c[64];
 	static char keys[0x36] = "\n\n1234567890-=\n\tqwertyuiop[]\n_asdfghjkl;'`\\_zxcvbnm,./";
 	static bool shift;
 	static bool ctrl;
@@ -61,8 +88,13 @@ void kb_events(){
 	event_list * list = NULL;
 	event_list * itr = NULL;
 	
-	count = kb_read(c,32);
+	update_mouse(&mx,&my);
+	count = kb_read(c,64);
 	
+	if(mx < 0) mx=0;
+	if(my < 0) my=0;
+	mx+=10;
+	my+=10;
 	for(i = 0; i < count; i++) {
 		switch(c[i]) {
 			case SHIFT:
@@ -83,6 +115,48 @@ void kb_events(){
 			case ALT + UP:
 				alt = true;
 				continue;
+			case LEFT_MOUSE:
+				event.u.mouse.x = mx;
+				event.u.mouse.y = my;
+				event.u.mouse.button = 1;
+				event.type = MOUSE_DOWN;
+				add_event(&list, &itr, event);
+				continue;
+			case RIGHT_MOUSE:
+				event.u.mouse.x = mx;
+				event.u.mouse.y = my;
+				event.u.mouse.button = 2;
+				event.type = MOUSE_DOWN;
+				add_event(&list, &itr, event);
+				continue;
+			case MIDDLE_MOUSE:
+				event.u.mouse.x = mx;
+				event.u.mouse.y = my;
+				event.u.mouse.button = 3;
+				event.type = MOUSE_DOWN;
+				add_event(&list, &itr, event);
+				continue;
+			case LEFT_MOUSE + UP:
+				event.u.mouse.x = mx;
+				event.u.mouse.y = my;
+				event.u.mouse.button = 1;
+				event.type = MOUSE_UP;
+				add_event(&list, &itr, event);
+				continue;
+			case RIGHT_MOUSE + UP:
+				event.u.mouse.x = mx;
+				event.u.mouse.y = my;
+				event.u.mouse.button = 2;
+				event.type = MOUSE_UP;
+				add_event(&list, &itr, event);
+				continue;
+			case MIDDLE_MOUSE + UP:
+				event.u.mouse.x = mx;
+				event.u.mouse.y = my;
+				event.u.mouse.button = 3;
+				event.type = MOUSE_UP;
+				add_event(&list, &itr, event);
+				continue;
 		}
 		if(c[i] <= 0x35 || c[i] == 0x39) {
 			if(c[i] == 0x39) {
@@ -94,14 +168,7 @@ void kb_events(){
 			event.u.keyboard.shift = shift;
 			event.u.keyboard.ctrl = ctrl;
 			event.u.keyboard.alt = alt;
-			if(list == NULL) {
-				list = malloc(sizeof(event_list));
-				itr = list;
-			} else {
-				itr->next = malloc(sizeof(event_list));
-				itr = itr->next;
-			}
-			itr->event = event;
+			add_event(&list, &itr, event);
 //			print_event(event);
 		}
 	}
@@ -110,6 +177,7 @@ void kb_events(){
 		handle_events(list);
 	}
 	free_event_list(list);
+//	draw_mouse(mx,my);
 }
 
 int main() {
@@ -117,8 +185,7 @@ int main() {
 	
 	while(1) {
 		serve();
-		kb_events();
-		//poll_mouse();
+		process_events();
 		try_draw();
 	}
 }
@@ -210,6 +277,7 @@ void remove_expanse(expanse_handle e) {
 }
 
 void update_expanse(expanse e) {
+	pixel p = { 0, 0, 0 };
 	full_expanse* itr;
 	
 	if(expanses == NULL) {
@@ -219,6 +287,9 @@ void update_expanse(expanse e) {
 	for(itr = expanses; itr != NULL; itr = itr->next) {
 		if(itr->exp.handle == e.handle) {
 			itr->dirty_lbuf = true;
+			if(itr->exp.x != e.x || itr->exp.y != e.y) {
+				gr_fill(&p, (itr->exp.x), itr->exp.y, itr->exp.width, itr->exp.height);
+			}
 			itr->exp = e;
 			break;
 		}
@@ -247,15 +318,13 @@ full_expanse * get_front_expanse() {
 	return expanses;
 }
 void adjust_events(event_list* elist) {
-	event event;
 	full_expanse * fexp = expanses;
 	
 	for(; elist != NULL; elist = elist->next) {
-		event = elist->event;
-		if(event.type == MOUSE_DOWN || event.type == MOUSE_UP) {
+		if(elist->event.type == MOUSE_DOWN || elist->event.type == MOUSE_UP) {
 			//TODO account for border
-			event.u.mouse.x -= fexp->exp.x;
-			event.u.mouse.y -= fexp->exp.y;
+			elist->event.u.mouse.x -= fexp->exp.x;
+			elist->event.u.mouse.y -= fexp->exp.y;
 		}
 	}
 }
