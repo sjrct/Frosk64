@@ -109,7 +109,7 @@ void * realloc(void * old, size_t sz)
 
 void free(void * ptr)
 {
-//	return;
+	return;
 //	debug_line("free: ");
 //	debug_number(ptr);
 	header * cur, * prv;

@@ -11,6 +11,15 @@
 #include <events.h>
 #include <debug.h>
 
+void free_event_list(event_list * list) {
+	if(list != NULL) {
+		if(list->next != NULL) {
+			free_event_list(list->next);
+		}
+		free(list);
+	}
+}
+
 event_list * get_events(pid_t pid, int port) {
 	int count;
 	event_list * events = NULL;

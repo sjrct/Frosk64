@@ -16,7 +16,7 @@ static full_expanse * expanses;
 void try_draw() {
 	expanse * exp;
 	full_expanse * itr;
-	pixel p = { 0, 0, 0};
+//	pixel p = { 0, 0, 0};
 	
 	for(itr = expanses; itr != NULL; itr = itr->next) {
 		exp = &itr->exp;
@@ -36,9 +36,10 @@ void try_draw() {
 }
 
 void print_event(event e) {
+	write_serial('*');
 	write_serial(e.u.keyboard.letter);
 	write_serial('\n');
-	debug_number(e.u.keyboard.shift);
+//	debug_number(e.u.keyboard.shift);
 }
 
 #define SHIFT 0x2a
@@ -108,6 +109,7 @@ void kb_events(){
 	if(list != NULL) {
 		handle_events(list);
 	}
+	free_event_list(list);
 }
 
 int main() {

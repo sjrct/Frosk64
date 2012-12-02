@@ -46,5 +46,6 @@ typedef struct event_list {
 
 event_list * get_events(pid_t, int);
 void send_events(pid_t pid, int port, event_list * list);
+void free_event_list(event_list * list);
 
 #endif

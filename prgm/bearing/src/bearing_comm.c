@@ -110,9 +110,10 @@ void handle_events_func() {
 	}
 	
 	send_events(expsys, EVENT_COMM_PORT, new);
+	
+	send_func(ES_GET_FRONT_EXPANSE);
+	receive_data(&exp, sizeof(expanse));
 	for(itr = mine; itr != NULL; itr = itr->next){
-		send_func(ES_GET_FRONT_EXPANSE);
-		receive_data(&exp, sizeof(expanse));
 		switch(itr->event.u.keyboard.letter) {
 			case 's':
 				exp.visible = !exp.visible;
@@ -124,15 +125,18 @@ void handle_events_func() {
 				exp.x+=3;
 				break;
 			case 'k':
-				exp.y-=3;
-				break;
-			case 'i':
 				exp.y+=3;
 				break;
+			case 'i':
+				exp.y-=3;
+				break;
 		}
-		update_expanse(exp);
 	}
+	update_expanse(exp);
 	send_func(ES_REENABLE_EVENTS);
+	free_event_list(new);
+	free_event_list(events);
+	free_event_list(mine);
 }
 
 void serve(void) {

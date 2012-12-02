@@ -117,7 +117,7 @@ void handle_events(event_list* events) {
 	if(em) {
 		call_func(em, EM_HANDLE_EVENTS);
 		send_events(em, EVENT_COMM_PORT, events);
-		free(events);
+		free_event_list(events);
 		events = get_events(em, EVENT_COMM_PORT);
 	}
 	exp = get_front_expanse();
@@ -127,6 +127,7 @@ void handle_events(event_list* events) {
 		send(exp->pid, EVENT_COMM_PORT, exp->exp.handle, sizeof(expanse_handle));
 		send_events(exp->pid, EVENT_COMM_PORT, events);
 	}
+	free_event_list(events);
 }
 static void reenable_events_func(pid_t pid) {
 	events_allowed = true;
