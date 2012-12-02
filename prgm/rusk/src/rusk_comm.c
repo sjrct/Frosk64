@@ -25,6 +25,8 @@ static void register_em_func(pid_t);
 static void get_front_expanse_func(pid_t);
 // void reenable_events()
 static void reenable_events_func(pid_t);
+// void update_decoration_buffer(expanse, pixel_buffer top)
+static void update_decoration_buffer_func(pid_t);
 
 static void (*funcs[])(pid_t) = {
 	create_expanse_func,
@@ -34,6 +36,7 @@ static void (*funcs[])(pid_t) = {
 	register_em_func,
 	get_front_expanse_func,
 	reenable_events_func,
+	update_decoration_buffer_func,
 };
 
 void receive_data(pid_t pid, int port, void * data, int size) {
@@ -132,6 +135,14 @@ void handle_events(event_list* events) {
 }
 static void reenable_events_func(pid_t pid) {
 	events_allowed = true;
+}
+
+static void update_decoration_buffer_func(pid_t id) {
+	pixel_buffer top;
+	expanse exp;
+	receive(id, ES_COMM_PORT, &exp, sizeof(expanse));
+	top = receive_buffer(id, ES_COMM_PORT);
+	set_decoration_buffers(exp, top);
 }
 
 void serve(void) {

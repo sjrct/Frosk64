@@ -28,3 +28,11 @@ void move_expanse(expanse e, int new_x, int new_y) {
 	e.y = new_y;
 	update_expanse(e);
 }
+
+void setup_borders(expanse exp) {
+	pixel_buffer top;
+	pixel p = { 0, 0, 100};
+	top = create_buffer(exp.width, -exp.sub_offset_y, p);
+	update_borders(exp, top);
+}
+

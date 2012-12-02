@@ -42,14 +42,23 @@ void update_expanse(expanse e) {
 	send_data(&e, sizeof(expanse));
 }
 
+void update_borders(expanse exp, pixel_buffer top) {
+	send_func(ES_UPDATE_DECORATION_BUFFER);
+	send_data(&exp, sizeof(expanse));
+	send_buffer(expsys, ES_COMM_PORT, top);
+}
+
 void init_expanse_func() {
 	expanse exp;
 	receive_data(&exp, sizeof(expanse));
 	
-//	exp.border = 4 ...
-//	exp.visible = false;
+	exp.y = 30;
+	exp.sub_offset_x = 0;
+	exp.sub_offset_y = -10;
 
 	update_expanse(exp);
+	
+	setup_borders(exp);
 }
 
 void resize_func() {
@@ -81,7 +90,7 @@ bool check_event(event ev, expanse exp) {
 		break;
 		case MOUSE_DOWN:
 			if (ev.u.mouse.x >= exp.x && ev.u.mouse.x <= exp.x + exp.width &&
-				ev.u.mouse.y >= exp.y && ev.u.mouse.y <= exp.y + 10) { //TODO FIX TO BORDER
+				ev.u.mouse.y >= exp.y + exp.sub_offset_y && ev.u.mouse.y <= exp.y) { //TODO FIX TO BORDER
 				mouse_down = true;
 				return true;
 			}

@@ -14,9 +14,12 @@
 typedef struct full_expanse {
 	expanse exp;
 	pixel_buffer expanse_buffer;
+	pixel_buffer top_buffer;
 	pid_t pid;
 	char * lbuf;
 	bool dirty_lbuf;
+	char * tlbuf;
+	bool dirty_tlbuf;
 	struct full_expanse * next;
 } full_expanse;
 
@@ -30,6 +33,7 @@ void update_expanse(expanse);
 full_expanse * get_front_expanse();
 void handle_events(event_list*);
 void adjust_events(event_list*);
+void set_decoration_buffers(expanse, pixel_buffer);
 
 void em_registered();
 void em_init_expanse(expanse e);

@@ -31,7 +31,15 @@ void try_draw() {
 			itr->lbuf = linear_buffer(itr->expanse_buffer);
 			itr->dirty_lbuf = false;
 		}
+		if (itr->dirty_tlbuf) {
+			if(itr->tlbuf != NULL) {
+				free(itr->tlbuf);
+			}
+			itr->tlbuf = linear_buffer(itr->top_buffer);
+			itr->dirty_tlbuf = false;
+		}
 		gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
+		gr_draw(itr->tlbuf, exp->x + exp->sub_offset_x, exp->y + exp->sub_offset_y, itr->top_buffer.width, itr->top_buffer.height);
 	}
 	draw_mouse(mx,my);
 }
@@ -287,8 +295,9 @@ void update_expanse(expanse e) {
 	for(itr = expanses; itr != NULL; itr = itr->next) {
 		if(itr->exp.handle == e.handle) {
 			itr->dirty_lbuf = true;
-			if(itr->exp.x != e.x || itr->exp.y != e.y) {
-				gr_fill(&p, (itr->exp.x), itr->exp.y, itr->exp.width, itr->exp.height);
+			if(itr->exp.x != e.x || itr->exp.y != e.y || itr->exp.visible != e.visible) {
+				gr_fill(&p, itr->exp.x, itr->exp.y, itr->exp.width, itr->exp.height);
+				gr_fill(&p, itr->exp.x + itr->exp.sub_offset_x, itr->exp.y + itr->exp.sub_offset_y, itr->top_buffer.width, itr->top_buffer.height);
 			}
 			itr->exp = e;
 			break;
@@ -317,6 +326,7 @@ void bring_expanse_to_front(expanse_handle e) {
 full_expanse * get_front_expanse() {
 	return expanses;
 }
+
 void adjust_events(event_list* elist) {
 	full_expanse * fexp = expanses;
 	
@@ -326,5 +336,18 @@ void adjust_events(event_list* elist) {
 			elist->event.u.mouse.x -= fexp->exp.x;
 			elist->event.u.mouse.y -= fexp->exp.y;
 		}
+	}
+}
+
+void set_decoration_buffers(expanse exp, pixel_buffer top) {
+	full_expanse * itr;
+	for(itr = expanses; itr != NULL; itr = itr->next) {
+		if(itr->exp.handle == exp.handle) {
+			break;
+		}
+	}
+	if(itr != NULL) {
+		itr->top_buffer = top;
+		itr->dirty_tlbuf = true;
 	}
 }
