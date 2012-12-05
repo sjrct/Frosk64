@@ -13,13 +13,6 @@
 #include <shiny/shiny.h>
 #include <debug.h>
 
-
-typedef struct expanse_list {
-	expanse_handle handle;
-	shiny_thingy * expanse;
-	struct expanse_list * next;
-} expanse_list;
-
 typedef struct event_handler {
 	shiny_thingy * thingy;
 	event_type type;
@@ -31,8 +24,14 @@ typedef struct event_handler_list {
 	struct event_handler_list * next;
 } event_handler_list;
 
-event_handler_list * eh_list;
-expanse_list * exp_list;
+typedef struct expanseh_list {
+	expanse_handle handle;
+	shiny_thingy * expanse;
+	struct expanseh_list * next;
+	event_handler_list * handlers;
+} expanseh_list;
+
+expanseh_list * exp_list;
 shiny_thingy * down_thingy = NULL;
 shiny_thingy * selected = NULL;
 
@@ -59,7 +58,7 @@ shiny_thingy * create_shiny_expanse(int width, int height) {
 	api_expanse exp;
 	expanse_handle handle;
 	shiny_thingy * expanse;
-	expanse_list * itr;
+	expanseh_list * itr;
 	
 	exp.width = width;
 	exp.height = height;
@@ -69,14 +68,14 @@ shiny_thingy * create_shiny_expanse(int width, int height) {
 	send_data(&exp, sizeof(api_expanse));
 
 	handle = recieve_handle();
-	expanse = create_shiny_container(width, height);
+	expanse = create_shiny_container(handle, width, height);
 	
 	if(exp_list == NULL) {
-		exp_list = malloc(sizeof(expanse_list));
+		exp_list = malloc(sizeof(expanseh_list));
 		itr = exp_list;
 	} else {
 		for(itr = exp_list; itr->next != NULL; itr = itr->next);
-		itr->next = malloc(sizeof(expanse_list));
+		itr->next = malloc(sizeof(expanseh_list));
 		itr = itr->next;
 	}
 	
@@ -87,8 +86,8 @@ shiny_thingy * create_shiny_expanse(int width, int height) {
 }
 
 void remove_expanse(expanse_handle handle) {
-	expanse_list * itr;
-	expanse_list * tmp;
+	expanseh_list * itr;
+	expanseh_list * tmp;
 	
 	if(exp_list == NULL){
 		return; //TODO error?
@@ -130,6 +129,7 @@ void draw_buffer(pixel_buffer buffer, shiny_loc loc) {
 }
 
 void register_event_handler(shiny_thingy * thingy, event_type type, bool (*handler_func)(shiny_thingy *, event)) {
+	expanseh_list * eitr;
 	event_handler_list * itr;
 	event_handler handler;
 	
@@ -137,14 +137,22 @@ void register_event_handler(shiny_thingy * thingy, event_type type, bool (*handl
 	handler.type = type;
 	handler.thingy = thingy;
 	
-	if(eh_list == NULL) {
-		eh_list = malloc(sizeof(event_handler_list));
-		eh_list->handler = handler;
-	} else {
-		for(itr = eh_list; itr->next != NULL; itr = itr->next);
-		itr->next = malloc(sizeof(event_handler_list));
-		itr = itr->next;
-		itr->handler = handler;
+	for(eitr = exp_list; eitr != NULL; eitr = eitr->next) {
+		if(eitr->handle == thingy->loc.expanse_handle) {
+			break;
+		}
+	}
+	
+	if(eitr != NULL) {
+		if(eitr->handlers == NULL) {
+			eitr->handlers = malloc(sizeof(event_handler_list));
+			eitr->handlers->handler = handler;
+		} else {
+			for(itr = eitr->handlers; itr->next != NULL; itr = itr->next);
+			itr->next = malloc(sizeof(event_handler_list));
+			itr = itr->next;
+			itr->handler = handler;
+		}
 	}
 }
 
@@ -158,11 +166,16 @@ bool in_range(event ev, shiny_thingy * thingy) {
 		break;
 		
 		case MOUSE_DOWN:
+			debug_number(ev.u.mouse.x);
+			debug_number(ev.u.mouse.y);
+			
 			if (loc.x <= ev.u.mouse.x &&
 				loc.y <= ev.u.mouse.y &&
 				loc.x + size.width  >= ev.u.mouse.x &&
 				loc.y + size.height >= ev.u.mouse.y) {
 				down_thingy = thingy;
+				debug_string("down:");
+				debug_number(thingy);
 				return true;
 			}
 		break;
@@ -196,7 +209,7 @@ void shiny_main_loop() {
 	shiny_thingy * thingy;
 	
 	event_list * el_itr;
-	expanse_list * itr;
+	expanseh_list * itr;
 	event_list * el;
 	
 	shiny_loc loc;
@@ -212,21 +225,25 @@ void shiny_main_loop() {
 	while(1) {
 		while(!receive(get_esyspid(), EVENT_COMM_PORT, &handle, sizeof(expanse_handle)));
 		el = get_events(get_esyspid(), EVENT_COMM_PORT);
-
-		// Might be able to do better
+		
 		for(itr = exp_list; itr != NULL; itr = itr->next) {
-			for(el_itr = el; el_itr != NULL; el_itr = el_itr->next) {
-				for(eh_itr = eh_list; eh_itr != NULL; eh_itr = eh_itr->next) {
-					handler = eh_itr->handler;
-					thingy = handler.thingy;
-					event = el_itr->event;
-					
-					if (thingy->loc.expanse_handle == itr->handle 	&&	// Same expanse
-						in_range(event, thingy)						&&	// Same location
-						event.type == handler.type					&& 	// Same type
-						handler.handler_func(thingy, event)) {			// Event was handled
-							break;
-					}
+			if(itr->handle == handle) {
+				break;
+			}
+		}
+		if(itr == NULL) continue;
+		
+		for(el_itr = el; el_itr != NULL; el_itr = el_itr->next) {
+			for(eh_itr = itr->handlers; eh_itr != NULL; eh_itr = eh_itr->next) {
+				handler = eh_itr->handler;
+				thingy = handler.thingy;
+				event = el_itr->event;
+				debug_number(handler.thingy);
+				
+				if (in_range(event, thingy)						&&	// Same location
+					event.type == handler.type					&& 	// Same type
+					handler.handler_func(thingy, event)) {			// Event was handled
+						break;
 				}
 			}
 		}

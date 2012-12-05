@@ -116,19 +116,34 @@ static void get_front_expanse_func(pid_t id) {
 
 void handle_events(event_list* events) {
 	full_expanse * exp;
+	full_expanse * itra;
+	expanse_list * exp_list = NULL;
+	expanse_list * itrb;
 	events_allowed = false;
+	
 	exp = get_front_expanse();
 	if(em) {
+		for(itra = exp; itra != NULL; itra = itra->next) {
+			if(exp_list == NULL) {
+				exp_list = malloc(sizeof(expanse_list));
+				itrb = exp_list;
+			} else {
+				itrb->next = malloc(sizeof(expanse_list));
+				itrb = itrb->next;
+			}
+			itrb->exp = itra->exp;
+		}
+		
 		call_func(em, EM_HANDLE_EVENTS);
+		send_exp_list(em, EVENT_COMM_PORT, exp_list);
 		send_events(em, EVENT_COMM_PORT, events);
-		send(em, EVENT_COMM_PORT, &exp->exp, sizeof(expanse));
 		free_event_list(events);
 		events = get_events(em, EVENT_COMM_PORT);
 	}
 	if(exp != NULL) {
 		// the following events have been modified from their original version to fit your expanse
 		adjust_events(events);
-		send(exp->pid, EVENT_COMM_PORT, exp->exp.handle, sizeof(expanse_handle));
+		send(exp->pid, EVENT_COMM_PORT, &exp->exp.handle, sizeof(expanse_handle));
 		send_events(exp->pid, EVENT_COMM_PORT, events);
 	}
 	free_event_list(events);

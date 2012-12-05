@@ -10,6 +10,7 @@
 #define ES_COMM_PORT 0x10
 
 #include <stdbool.h>
+#include <frosk.h>
 
 typedef long expanse_handle;
 
@@ -48,5 +49,15 @@ typedef struct {
 
 	api_expanse api_exp;
 } expanse;
+
+
+typedef struct expanse_list {
+	expanse exp;
+	struct expanse_list * next;
+} expanse_list;
+
+void send_exp_list(pid_t id, int port, expanse_list *);
+expanse_list * receive_exp_list(pid_t id, int port);
+void free_exp_list(expanse_list *);
 
 #endif

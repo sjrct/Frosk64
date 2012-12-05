@@ -18,7 +18,7 @@ static header * hdr = NULL;
 
 void * malloc(size_t sz)
 {
-//	debug_line("**");
+//	debug_string("malloc:");
 //	debug_number(sz);
 
 	static bool first = true;
@@ -42,7 +42,7 @@ void * malloc(size_t sz)
 	prv = hdr;
 	do {
 		if (cur->size >= sz) {
-//			debug_line("***");
+//			debug_string("***");
 //			debug_number(cur+1);
 
 			if (cur->size == sz) {
@@ -110,8 +110,8 @@ void * realloc(void * old, size_t sz)
 void free(void * ptr)
 {
 	return;
-//	debug_line("free: ");
-//	debug_number(ptr);
+	debug_string("free: ");
+	debug_number(ptr);
 	header * cur, * prv;
 	header * ph;
 	
@@ -127,7 +127,7 @@ void free(void * ptr)
 		cur = hdr->next;
 		
 		do {
-			if ((char*)(cur + 1) + cur->size == (char*)ph) {
+			if ((char*)(cur + 1) + cur->size == (char*)ptr) {
 				cur->size += ph->size + sizeof(header);
 				return;
 			}
@@ -151,5 +151,5 @@ void free(void * ptr)
 		ph->next = hdr->next;
 		hdr->next = ph;
 	}
-//	debug_line("freedone");
+	debug_line("freedone");
 }

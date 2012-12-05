@@ -8,7 +8,7 @@ static pid_t expsys;
 void init_expanse_func();
 // void resize_expanse(expanse, handle, width, height)
 void resize_func();
-// event_list handle_events(event_list, expanse front)
+// event_list handle_events(expanse_list, event_list)
 void handle_events_func();
 
 static void (*funcs[])() = {
@@ -116,6 +116,8 @@ void handle_events_func() {
 	event_list * new_itr;
 	int mdx, mdy;
 	expanse exp;
+	expanse_list * expanses;
+	expanses = receive_exp_list(expsys, EVENT_COMM_PORT);
 	events = get_events(expsys, EVENT_COMM_PORT);
 	receive(expsys, EVENT_COMM_PORT, &exp, sizeof(expanse));
 	

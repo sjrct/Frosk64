@@ -54,14 +54,15 @@ bool select_test(shiny_thingy * thingy, event ev) {
 	static bool selected = false;
 	selected = !selected;
 	
-	set_shiny_buffer(SHINY_BUFFER(buffer), selected ? select : norm);
-	draw(buffer);
+	set_shiny_buffer(thingy, selected ? select : norm);
+	debug_number(thingy);
+	draw(thingy);
 	return true;
 }
 
 bool handler_test(shiny_thingy * thingy, event ev) {
 	if(ev.u.keyboard.letter == 'a') {
-		set_shiny_buffer(SHINY_BUFFER(buffer), fill);
+		set_shiny_buffer(buffer, fill);
 		draw(buffer);
 	}
 	return false;
@@ -70,22 +71,27 @@ bool handler_test(shiny_thingy * thingy, event ev) {
 int main()
 {
 	shiny_thingy * expanse;
-	
+	shiny_thingy * expanse2;
+	shiny_thingy * buffer2;
+
 	init_buffers();
 
 	expanse = create_shiny_expanse(150, 50);
-	buffer = create_shiny_buffer();
-
-	buffer->size.width = SIZE;
-	buffer->size.height = SIZE;
+	expanse2 = create_shiny_expanse(100, 100);
+	buffer = create_shiny_buffer(expanse->loc.expanse_handle);
+	buffer2 = create_shiny_buffer(expanse2->loc.expanse_handle);
 	
-	set_shiny_buffer(SHINY_BUFFER(buffer), norm);
+	set_shiny_buffer(buffer, norm);
+	set_shiny_buffer(buffer2, fill);
 	container_add_thingy(SHINY_CONTAINER(expanse), buffer);
+	debug_number(buffer);
+	container_add_thingy(SHINY_CONTAINER(expanse2), buffer2);
+	debug_number(buffer2);
 	
 //	register_event_handler(expanse, KEY_DOWN, handler_test);
 	register_event_handler(buffer, KEY_DOWN, handler_test);
 //	register_event_handler(buffer, MOUSE_DOWN, select_test);
-	register_event_handler(buffer, MOUSE_UP, select_test);
+	register_event_handler(buffer2, MOUSE_UP, select_test);
 	
 	shiny_main_loop();
 	return 0;

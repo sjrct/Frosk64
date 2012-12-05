@@ -20,17 +20,17 @@ struct shiny_container{
 };
 
 
-shiny_thingy * create_shiny_container(int width, int height) {
+shiny_thingy * create_shiny_container(expanse_handle h, int width, int height) {
 	shiny_thingy * thingy = malloc(sizeof(shiny_thingy));
 	SHINY_CONTAINER(thingy) = malloc(sizeof(shiny_container));
 	thingy->size.width = width;
 	thingy->size.height = height;
-	thingy->type = 	CONTAINER;
+	thingy->type = CONTAINER;
+	thingy->loc.expanse_handle = h;
 	return thingy;
 }
 
 void container_add_thingy(shiny_container * container, shiny_thingy * thingy) {
-
 	container_list * itr;
 	
 	if(container->things != NULL) {

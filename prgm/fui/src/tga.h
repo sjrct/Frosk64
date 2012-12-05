@@ -8,11 +8,12 @@
 #define TGA_H
 
 #include <cmn/utypes.h>
+#include <bufferutils.h>
 
 typedef struct {
 	uint w, h;
 	uchar bpp;
-	uchar * data;
+	pixel_buffer buffer;
 } tga_image;
 
 int parse_tga(const char *, uint, tga_image *);

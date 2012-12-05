@@ -13,6 +13,9 @@ d:[name = /, read = owner, write = owner, contents = {
 		}]
 		d:[name = bearing, contents = {
 			f:[name = bearing, actual = prgm/bearing/bearing]
+			d:[name = img, contents = {
+				f:[name = topbar.tga, actual=prgm/bearing/img/topbar.tga]
+			}]
 		}]
 	}]
 

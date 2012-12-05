@@ -11,7 +11,7 @@
 
 typedef struct shiny_container shiny_container;
 
-shiny_thingy * create_shiny_container(int width, int height);
+shiny_thingy * create_shiny_container(expanse_handle, int width, int height);
 
 void container_add_thingy(shiny_container *, shiny_thingy *);
 void container_remove_thingy(shiny_container *, shiny_thingy *);

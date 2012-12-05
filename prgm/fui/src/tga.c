@@ -32,9 +32,27 @@ typedef struct {
 } tgah;
 #pragma pack(pop)
 
+
+
+pixel_buffer from_linear_buffer(const char * lbuf, int x, int y) {
+	pixel_buffer pb;
+	pixel p = {0,0,0};
+	pb = create_buffer(x,y,p);
+	int i,j;
+	for(j = 0; j < y; j++) {
+		for(i = 0; i < x; i++) {
+			pb.buffer[y,x].r = lbuf[y*x*4+0];
+			pb.buffer[y,x].g = lbuf[y*x*4+1];
+			pb.buffer[y,x].b = lbuf[y*x*4+2];
+			//ignore alpha
+		}
+	}
+	return pb;
+}
+
 int parse_tga(const char * buf, uint sz, tga_image * to)
 {
-	uchar pixel[4];
+	pixel pixel = {0,0,0};
 	uchar len;
 	ulong i, j, k, l, size;
 	tgah * hdr;
@@ -46,40 +64,39 @@ int parse_tga(const char * buf, uint sz, tga_image * to)
 	buf += sizeof(tgah) + hdr->identsz;
 	
 	size = to->w * to->h * to->bpp;
-	to->data = malloc(size);
 	
 	switch (hdr->img_type) {
-	case TRUECOLOR:
-		if (to->col_map_type) return false;
-		memcpy(to->data, buf, size);
-		break;
-	
-	case TRUECOLOR | ENCODED:
-		if (to->col_map_type) return false;
+		case TRUECOLOR:
+			if (to->col_map_type) return false;
+			to->buffer = from_linear_buffer(buf, x, y);
+			break;
+		/*
+		case TRUECOLOR | ENCODED:
+			if (to->col_map_type) return false;
 		
-		for (i = l = 0; l < size;) {
-			len = buf[i++];
+			for (i = l = 0; l < size;) {
+				len = buf[i++];
 			
-			if (len & 0x80) {
-				for (k = 0; k < to->bpp; k++) {
-					pixel[k] = buf[i++];
-				}
-				
-				for (j = 0; j < len - 127; j++) {
+				if (len & 0x80) {
 					for (k = 0; k < to->bpp; k++) {
-						to->data[l++] = pixel[k];
+						pixel[k] = buf[i++];
 					}
-				}
-			} else {
-				for (j = 0; j < len + 1; j++) {
-					for (k = 0; k < to->bpp; k++) {
-						to->data[l++] = buf[i++];
+				
+					for (j = 0; j < len - 127; j++) {
+						for (k = 0; k < to->bpp; k++) {
+							to->data[l++] = pixel[k];
+						}
+					}
+				} else {
+					for (j = 0; j < len + 1; j++) {
+						for (k = 0; k < to->bpp; k++) {
+							to->data[l++] = buf[i++];
+						}
 					}
 				}
 			}
-		}
-		break;
-	
+			break;
+		*/
 	default:
 		return false;
 	}

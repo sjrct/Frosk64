@@ -19,7 +19,7 @@ void draw_mouse(int x, int y);
 void try_draw() {
 	expanse * exp;
 	full_expanse * itr;
-	
+	int x = 0;
 	for(itr = expanses; itr != NULL; itr = itr->next) {
 		exp = &itr->exp;
 		if(!exp->visible) continue;
@@ -40,6 +40,7 @@ void try_draw() {
 		}
 		gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
 		gr_draw(itr->tlbuf, exp->x + exp->sub_offset_x, exp->y + exp->sub_offset_y, itr->top_buffer.width, itr->top_buffer.height);
+//		debug_number(itr->exp.handle);
 	}
 	draw_mouse(mx,my);
 }
@@ -219,11 +220,12 @@ void em_registered() {
 	}
 }
 
+static int count = 1;
 expanse add_expanse(const api_expanse* e, pid_t pid) {
 	expanse exp;
 	pixel pxl = { 0, 128, 0 };
 
-	full_expanse* itr = expanses;
+	full_expanse* itr;
 	full_expanse* new_e = malloc(sizeof(full_expanse));
 
 	exp.x = 10;
@@ -241,18 +243,20 @@ expanse add_expanse(const api_expanse* e, pid_t pid) {
 	new_e->expanse_buffer = create_buffer(e->width, e->height, pxl);
 	new_e->dirty_lbuf = true;
 	new_e->lbuf = NULL;	
-	new_e->exp.handle = (expanse_handle)e;
+//	new_e->exp.handle = (expanse_handle)e;
+	new_e->exp.handle = count;
 	new_e->pid = pid;
 	
-	if (itr == NULL) {
+	
+	new_e->next = expanses;
+	expanses = new_e;
+/*	if (expanses == NULL) {
 		expanses = new_e;
 	} else {
-		while (itr->next != NULL) {
-			itr = itr->next;
-		}
-		
+		for(itr = expanses; itr->next != NULL; itr = itr->next);
 		itr->next = new_e;
-	}
+	}*/
+	count++;
 	
 	return new_e->exp;
 }
