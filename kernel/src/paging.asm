@@ -48,6 +48,10 @@ page_fault:
 	; add page to current applicable workspace
 	;add_pgs_to_ws(kern_obj * o, ulong vbase, ulong pbase, uint size, ushort fl)
 	mov rsi, cr2
+	mov rcx, KSPACE_LOC
+	cmp rsi, rcx
+	ja .skip_ws
+	
 	and rsi, ~0xfff
 	
 	mov r11, USPACE_TOP / 2
@@ -63,6 +67,7 @@ page_fault:
 	mov rcx, 0x1000
 	mov r8, 7
 	call add_pgs_to_ws
+.skip_ws:
 
 	; page in the new page
 	pop rdi

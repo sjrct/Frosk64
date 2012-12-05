@@ -60,7 +60,7 @@ void init_page_mgr(void)
 	head[KVIRT_PAGES]->type = KOBJ_PAGES;
 	head[KVIRT_PAGES]->u.pmem.type = USABLE;
 	head[KVIRT_PAGES]->u.pmem.size = 0x80000000;	// FIXME
-	head[KVIRT_PAGES]->u.pmem.addr = KSPACE_LOC + 0x100000;
+	head[KVIRT_PAGES]->u.pmem.addr = KSPACE_LOC + 0x400000;
 	head[KVIRT_PAGES]->u.pmem.next = NULL;
 }
 
