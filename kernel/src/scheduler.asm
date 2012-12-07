@@ -24,7 +24,7 @@ global start_timer
 start_timer:
 	mov rdi, 0	; timer irq number
 	call enable_irq
-	mov al, 0x60	; interrupt on terminal count mode
+	mov al, 0x30	; interrupt on terminal count mode
 	out 0x43, al
 	mov al, 1
 	out 0x40, al
