@@ -48,17 +48,31 @@ void update_borders(expanse exp, pixel_buffer top) {
 	send_buffer(expsys, ES_COMM_PORT, top);
 }
 
+static bool old = false;
+static expanse oldexp;
+static int last_x = 30;
 void init_expanse_func() {
 	expanse exp;
+	pixel p = { 40, 40, 40};
+	pixel b = { 0, 0, 100};
 	receive_data(&exp, sizeof(expanse));
 	
 	exp.y = 30;
+	exp.x = last_x;
+	last_x += exp.width + 10;
 	exp.sub_offset_x = 0;
 	exp.sub_offset_y = -10;
-
+	
 	update_expanse(exp);
 	
-	setup_borders(exp);
+	setup_borders(exp, p);
+	
+	if(old) {
+//		setup_borders(oldexp, p);
+	}
+	old = true;
+	
+	oldexp = exp;
 }
 
 void resize_func() {
@@ -74,116 +88,24 @@ void resize_func() {
 	resize_expanse(exp, width, height);
 }
 
-static bool mouse_down;
-
-bool check_event(event ev, expanse exp) {
-	switch(ev.type) {
-		case KEY_DOWN:
-			switch(ev.u.keyboard.letter) {
-				case 's':
-				case 'j':
-				case 'i':
-				case 'k':
-				case 'l':
-					return true;
-			}
-		break;
-		case MOUSE_DOWN:
-			if (ev.u.mouse.x >= exp.x && ev.u.mouse.x <= exp.x + exp.width &&
-				ev.u.mouse.y >= exp.y + exp.sub_offset_y && ev.u.mouse.y <= exp.y) { //TODO FIX TO BORDER
-				mouse_down = true;
-				return true;
-			}
-		break;
-		case MOUSE_UP:
-			if(mouse_down) {
-				mouse_down = false;
-				return true;
-			}
-		break;
-		default:
-			return false;
-	}
-	return false;
+void set_front_expanse(expanse exp) {	
+	send_func(ES_SET_FRONT_EXPANSE);
+	send_data(&exp, sizeof(expanse));
 }
 
 void handle_events_func() {
 	event_list * events;
-	event_list * itr;
-	event_list * mine = NULL;
-	event_list * mine_itr;
-	event_list * new = NULL;
-	event_list * new_itr;
-	int mdx, mdy;
-	expanse exp;
 	expanse_list * expanses;
+	
 	expanses = receive_exp_list(expsys, EVENT_COMM_PORT);
 	events = get_events(expsys, EVENT_COMM_PORT);
-	receive(expsys, EVENT_COMM_PORT, &exp, sizeof(expanse));
 	
-	// Remove events that pertain to me
-	for(itr = events; itr != NULL; itr = itr->next) {
-		if(check_event(itr->event, exp)) {
-			if(mine == NULL) {
-				mine = malloc(sizeof(event_list));
-				mine_itr = mine;
-			} else {
-				mine_itr->next = malloc(sizeof(event_list));
-				mine_itr = mine_itr->next;
-			}
-			mine_itr->event = itr->event;
-		} else {
-			if(new == NULL) {
-				new = malloc(sizeof(event_list));
-				new_itr = new;
-			} else {
-				new_itr->next = malloc(sizeof(event_list));
-				new_itr = new_itr->next;
-			}
-			new_itr->event = itr->event;
-		}
-	}
+	events = handle_events(events, expanses);
 	
-	send_events(expsys, EVENT_COMM_PORT, new);
+	send_func(ES_SEND_EVENTS);
+	send_events(expsys, EVENT_COMM_PORT, events);
 	
-	for(itr = mine; itr != NULL; itr = itr->next){
-		switch(itr->event.type) {
-			case KEY_DOWN:
-				switch(itr->event.u.keyboard.letter) {
-					case 's':
-						exp.visible = !exp.visible;
-						break;
-					case 'j':
-						exp.x-=3;
-						break;
-					case 'l':
-						exp.x+=3;
-						break;
-					case 'k':
-						exp.y+=3;
-						break;
-					case 'i':
-						exp.y-=3;
-						break;
-				}
-				break;
-			case MOUSE_DOWN:
-				mdx = itr->event.u.mouse.x;
-				mdy = itr->event.u.mouse.y;
-				break;
-			case MOUSE_UP:
-				exp.x += itr->event.u.mouse.x - mdx;
-				exp.y += itr->event.u.mouse.y - mdy;
-				break;
-			default:
-				break;
-		}
-	}
-	update_expanse(exp);
-	send_func(ES_REENABLE_EVENTS);
-	free_event_list(new);
 	free_event_list(events);
-	free_event_list(mine);
 }
 
 void serve(void) {

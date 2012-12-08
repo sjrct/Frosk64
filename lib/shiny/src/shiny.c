@@ -166,16 +166,11 @@ bool in_range(event ev, shiny_thingy * thingy) {
 		break;
 		
 		case MOUSE_DOWN:
-			debug_number(ev.u.mouse.x);
-			debug_number(ev.u.mouse.y);
-			
 			if (loc.x <= ev.u.mouse.x &&
 				loc.y <= ev.u.mouse.y &&
 				loc.x + size.width  >= ev.u.mouse.x &&
 				loc.y + size.height >= ev.u.mouse.y) {
 				down_thingy = thingy;
-				debug_string("down:");
-				debug_number(thingy);
 				return true;
 			}
 		break;
@@ -238,7 +233,6 @@ void shiny_main_loop() {
 				handler = eh_itr->handler;
 				thingy = handler.thingy;
 				event = el_itr->event;
-				debug_number(handler.thingy);
 				
 				if (in_range(event, thingy)						&&	// Same location
 					event.type == handler.type					&& 	// Same type

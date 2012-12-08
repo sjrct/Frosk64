@@ -34,11 +34,11 @@ full_expanse * get_front_expanse();
 void handle_events(event_list*);
 void adjust_events(event_list*);
 void set_decoration_buffers(expanse, pixel_buffer);
+void bring_expanse_to_front(expanse_handle);
 
 void em_registered();
 void em_init_expanse(expanse e);
 
 pid_t em;
-bool events_allowed;
 
 #endif

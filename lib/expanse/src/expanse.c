@@ -1,10 +1,9 @@
 #include <expanse.h>
 #include <stdlib.h>
 
-
 expanse_list * receive_exp_list(pid_t id, int port) {
 	int count;
-	expanse_list * list;
+	expanse_list * list = NULL;
 	expanse_list * itr;
 	while(!receive(id, port, &count, sizeof(int)));
 	for(; count > 0; count--) {
@@ -22,10 +21,12 @@ expanse_list * receive_exp_list(pid_t id, int port) {
 void send_exp_list(pid_t id, int port, expanse_list * list) {
 	int count = 0;
 	expanse_list * itr;
-	for(itr = list; itr != NULL; itr = itr->next) count++;
+	for(itr = list; itr != NULL; itr = itr->next){
+		count++;
+	}
 	send(id, port, &count, sizeof(int));
-	for(; list != NULL; list = list->next) {
-		send(id, port, &list->exp, sizeof(expanse));
+	for(itr = list; itr != NULL; itr = itr->next) {
+		send(id, port, &itr->exp, sizeof(expanse));
 	}
 }
 void free_exp_list(expanse_list * list) {

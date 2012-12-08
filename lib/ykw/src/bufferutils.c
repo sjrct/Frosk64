@@ -30,6 +30,10 @@ pixel_buffer create_buffer(int width, int height, pixel fill)
 void resize_buffer(pixel_buffer * pb, int new_width, int new_height) {
 	int i;
 	
+	if(new_width == pb->width && new_height == pb->height) {
+		return;
+	}
+	
 	if (new_width < pb->width) {
 		for (i = 0; i < new_width; i++) {
 			pb->buffer[i] = realloc(pb->buffer[i], new_height * sizeof(pixel));
@@ -38,7 +42,7 @@ void resize_buffer(pixel_buffer * pb, int new_width, int new_height) {
 		for (; i < pb->width; i++) {
 			free(pb->buffer[i]);
 		}
-	} else {
+	} else{
 		for (i = 0; i < pb->width; i++) {
 			pb->buffer[i] = realloc(pb->buffer[i], new_height * sizeof(pixel));
 		}
@@ -101,6 +105,7 @@ char * linear_buffer(pixel_buffer pb)
 
 void send_buffer(pid_t pid, int port, pixel_buffer buffer) {
 	int i;
+	int j;
 	send(pid, port, &buffer.width, sizeof(int));
 	send(pid, port, &buffer.height, sizeof(int));
 	

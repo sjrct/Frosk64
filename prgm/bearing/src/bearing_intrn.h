@@ -10,7 +10,8 @@
 bool register_em();
 void serve(void);
 void update_expanse(expanse);
-void resize_expanse(expanse e, int new_width, int new_height);
-void setup_borders(expanse);
+void setup_borders(expanse, pixel);
 void update_borders(expanse exp, pixel_buffer top);
+event_list * handle_events(event_list * events, expanse_list * expanses);
+void set_front_expanse(expanse exp);
 #endif

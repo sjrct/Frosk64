@@ -21,10 +21,10 @@ static void update_partial_expanse_func(pid_t);
 static void update_expanse_func(pid_t);
 // bool register_em()
 static void register_em_func(pid_t);
-// expanse get_front_expanse()
-static void get_front_expanse_func(pid_t);
+// void set_front_expanse(expanse)
+static void set_front_expanse_func(pid_t);
 // void reenable_events()
-static void reenable_events_func(pid_t);
+static void send_events_func(pid_t);
 // void update_decoration_buffer(expanse, pixel_buffer top)
 static void update_decoration_buffer_func(pid_t);
 
@@ -34,13 +34,12 @@ static void (*funcs[])(pid_t) = {
 	update_partial_expanse_func,
 	update_expanse_func,
 	register_em_func,
-	get_front_expanse_func,
-	reenable_events_func,
+	set_front_expanse_func,
+	send_events_func,
 	update_decoration_buffer_func,
 };
 
 void receive_data(pid_t pid, int port, void * data, int size) {
-	while(!poll(port));
 	receive(pid, port, data, size);
 }
 
@@ -102,24 +101,17 @@ static void register_em_func(pid_t id) {
 	}
 }
 
-static void get_front_expanse_func(pid_t id) {
-	full_expanse * fexp;
+static void set_front_expanse_func(pid_t id){
 	expanse exp;
-	fexp = get_front_expanse();
-	if(fexp != NULL) {
-		exp = fexp->exp;
-	} else {
-		exp.handle = -1;
-	}
-	send(id, ES_COMM_PORT, &exp, sizeof(expanse));
+	receive_data(id, ES_COMM_PORT, &exp, sizeof(expanse));
+	bring_expanse_to_front(exp.handle);
 }
 
 void handle_events(event_list* events) {
 	full_expanse * exp;
-	full_expanse * itra;
+	full_expanse * itra	;
 	expanse_list * exp_list = NULL;
 	expanse_list * itrb;
-	events_allowed = false;
 	
 	exp = get_front_expanse();
 	if(em) {
@@ -138,24 +130,24 @@ void handle_events(event_list* events) {
 		send_exp_list(em, EVENT_COMM_PORT, exp_list);
 		send_events(em, EVENT_COMM_PORT, events);
 		free_event_list(events);
-		events = get_events(em, EVENT_COMM_PORT);
 	}
+}
+
+static void send_events_func(pid_t pid) {
+	event_list* events = get_events(em, EVENT_COMM_PORT);
+	full_expanse * exp = get_front_expanse();
+	
 	if(exp != NULL) {
-		// the following events have been modified from their original version to fit your expanse
 		adjust_events(events);
 		send(exp->pid, EVENT_COMM_PORT, &exp->exp.handle, sizeof(expanse_handle));
 		send_events(exp->pid, EVENT_COMM_PORT, events);
 	}
-	free_event_list(events);
-}
-static void reenable_events_func(pid_t pid) {
-	events_allowed = true;
 }
 
 static void update_decoration_buffer_func(pid_t id) {
 	pixel_buffer top;
 	expanse exp;
-	receive(id, ES_COMM_PORT, &exp, sizeof(expanse));
+	receive_data(id, ES_COMM_PORT, &exp, sizeof(expanse));
 	top = receive_buffer(id, ES_COMM_PORT);
 	set_decoration_buffers(exp, top);
 }

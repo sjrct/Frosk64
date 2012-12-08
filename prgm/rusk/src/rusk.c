@@ -19,29 +19,33 @@ void draw_mouse(int x, int y);
 void try_draw() {
 	expanse * exp;
 	full_expanse * itr;
-	int x = 0;
-	for(itr = expanses; itr != NULL; itr = itr->next) {
-		exp = &itr->exp;
-		if(!exp->visible) continue;
-		if (itr->dirty_lbuf) {
-			if(itr->lbuf != NULL) {
-				free(itr->lbuf);
+	static int x;
+	if(x >= 100) {
+		for(itr = expanses; itr != NULL; itr = itr->next) {
+			exp = &itr->exp;
+			if(!exp->visible) continue;
+			if (itr->dirty_lbuf) {
+				if(itr->lbuf != NULL) {
+					free(itr->lbuf);
+				}
+				resize_buffer(&itr->expanse_buffer, itr->exp.width, itr->exp.height);
+				itr->lbuf = linear_buffer(itr->expanse_buffer);
+				itr->dirty_lbuf = false;
 			}
-//			resize_buffer(&itr->expanse_buffer, itr->exp.width, itr->exp.height);
-			itr->lbuf = linear_buffer(itr->expanse_buffer);
-			itr->dirty_lbuf = false;
-		}
-		if (itr->dirty_tlbuf) {
-			if(itr->tlbuf != NULL) {
-				free(itr->tlbuf);
+			if (itr->dirty_tlbuf) {
+				if(itr->tlbuf != NULL) {
+					free(itr->tlbuf);
+				}
+				itr->tlbuf = linear_buffer(itr->top_buffer);
+				itr->dirty_tlbuf = false;
 			}
-			itr->tlbuf = linear_buffer(itr->top_buffer);
-			itr->dirty_tlbuf = false;
+
+			gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
+			gr_draw(itr->tlbuf, exp->x + exp->sub_offset_x, exp->y + exp->sub_offset_y, itr->top_buffer.width, itr->top_buffer.height);
 		}
-		gr_draw(itr->lbuf, exp->x, exp->y, exp->width, exp->height);
-		gr_draw(itr->tlbuf, exp->x + exp->sub_offset_x, exp->y + exp->sub_offset_y, itr->top_buffer.width, itr->top_buffer.height);
-//		debug_number(itr->exp.handle);
+		x=0;
 	}
+	x++;
 	draw_mouse(mx,my);
 }
 void draw_mouse(int x, int y) {
@@ -59,12 +63,6 @@ void draw_mouse(int x, int y) {
 	
 	px = x;
 	py = y;
-}
-void print_event(event e) {
-	write_serial('*');
-	write_serial(e.u.keyboard.letter);
-	write_serial('\n');
-//	debug_number(e.u.keyboard.shift);
 }
 
 void add_event(event_list ** list, event_list ** itr, event event) {	
@@ -91,8 +89,6 @@ void process_events(){
 	static bool alt;
 	int count, i;
 	event event;
-	
-	if (!events_allowed) return;
 	
 	event_list * list = NULL;
 	event_list * itr = NULL;
@@ -178,7 +174,6 @@ void process_events(){
 			event.u.keyboard.ctrl = ctrl;
 			event.u.keyboard.alt = alt;
 			add_event(&list, &itr, event);
-//			print_event(event);
 		}
 	}
 	
@@ -186,7 +181,6 @@ void process_events(){
 		handle_events(list);
 	}
 	free_event_list(list);
-//	draw_mouse(mx,my);
 }
 
 int main() {
@@ -243,19 +237,12 @@ expanse add_expanse(const api_expanse* e, pid_t pid) {
 	new_e->expanse_buffer = create_buffer(e->width, e->height, pxl);
 	new_e->dirty_lbuf = true;
 	new_e->lbuf = NULL;	
-//	new_e->exp.handle = (expanse_handle)e;
 	new_e->exp.handle = count;
 	new_e->pid = pid;
 	
 	
 	new_e->next = expanses;
 	expanses = new_e;
-/*	if (expanses == NULL) {
-		expanses = new_e;
-	} else {
-		for(itr = expanses; itr->next != NULL; itr = itr->next);
-		itr->next = new_e;
-	}*/
 	count++;
 	
 	return new_e->exp;
@@ -295,14 +282,12 @@ void update_expanse(expanse e) {
 	if(expanses == NULL) {
 		return;
 	}
-	
+
 	for(itr = expanses; itr != NULL; itr = itr->next) {
 		if(itr->exp.handle == e.handle) {
 			itr->dirty_lbuf = true;
-			if(itr->exp.x != e.x || itr->exp.y != e.y || itr->exp.visible != e.visible) {
-				gr_fill(&p, itr->exp.x, itr->exp.y, itr->exp.width, itr->exp.height);
-				gr_fill(&p, itr->exp.x + itr->exp.sub_offset_x, itr->exp.y + itr->exp.sub_offset_y, itr->top_buffer.width, itr->top_buffer.height);
-			}
+			gr_fill(&p, itr->exp.x, itr->exp.y, itr->exp.width, itr->exp.height);
+			gr_fill(&p, itr->exp.x + itr->exp.sub_offset_x, itr->exp.y + itr->exp.sub_offset_y, itr->top_buffer.width, itr->top_buffer.height);
 			itr->exp = e;
 			break;
 		}
@@ -317,13 +302,17 @@ void bring_expanse_to_front(expanse_handle e) {
 		return;
 	}
 	
-	for(itr = expanses; itr->next != NULL && itr->next->exp.handle != e; itr = itr->next);
+	for(itr = expanses; itr->next != NULL; itr = itr->next) {
+		if(itr->next->exp.handle == e) {
+			break;
+		}
+	}
 	
 	if(itr->next != NULL) {
 		first = itr->next;
-		for(itr->next = first->next; itr->next != NULL; itr = itr->next);
-		itr->next = first;
-		first->next = NULL;
+		itr->next = first->next;
+		first->next = expanses;
+		expanses = first;
 	}
 }
 

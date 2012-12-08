@@ -55,7 +55,6 @@ bool select_test(shiny_thingy * thingy, event ev) {
 	selected = !selected;
 	
 	set_shiny_buffer(thingy, selected ? select : norm);
-	debug_number(thingy);
 	draw(thingy);
 	return true;
 }
@@ -84,9 +83,7 @@ int main()
 	set_shiny_buffer(buffer, norm);
 	set_shiny_buffer(buffer2, fill);
 	container_add_thingy(SHINY_CONTAINER(expanse), buffer);
-	debug_number(buffer);
 	container_add_thingy(SHINY_CONTAINER(expanse2), buffer2);
-	debug_number(buffer2);
 	
 //	register_event_handler(expanse, KEY_DOWN, handler_test);
 	register_event_handler(buffer, KEY_DOWN, handler_test);
